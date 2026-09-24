@@ -1,0 +1,779 @@
+<div class="p-6 text-left relative">
+
+  <div class="mb-8 p-4 bg-white rounded-lg border border-sumi-200 flex items-end gap-4 shadow-sm">
+    <div class="flex-1">
+      <label class="block text-sm font-bold text-sumi-700 mb-2 text-left">Selecionar Aluno para consulta:</label>
+      <select (change)="carregarDadosAlunoSelect($event)"
+        class="w-full p-2 border border-sumi-300 rounded text-sumi-800 text-left">
+        <option value="">Escolha um aluno...</option>
+        @for (a of listaAlunos; track a.id_matricula) {
+        <option [value]="a.id_matricula">{{ a.nome }} ({{ a.id_matricula }})</option>
+        }
+      </select>
+    </div>
+    <button (click)="showForm = !showForm"
+      class="bg-sumi-700 hover:bg-sumi-800 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+      {{ showForm ? 'Cancelar' : 'Nova Matrícula' }}
+    </button>
+  </div>
+
+  @if (showForm) {
+  <div class="mb-8"><app-matricula-form [alunoParaUpgrade]="alunoUpgrade"
+      (matriculaConcluida)="showForm = false; carregarListaAlunos();"></app-matricula-form></div>
+  }
+
+  @if (aluno?.aluno?.atraso_critico && !aluno?.aluno?.observacao_financeira?.includes('[ACORDO]')) {
+  <div
+    class="mb-6 p-4 bg-carmesim-600 text-white font-black rounded-lg text-sm animate-pulse tracking-wider shadow">
+    <lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon> ALERTA DO SISTEMA: ESTE MENSALISTA ULTRAPASSOU 5 DIAS DE ATRASO NO VENCIMENTO. O SISTEMA BLOQUEOU O START
+    AUTOMATICAMENTE!
+  </div>
+  }
+
+  @if (aluno && !showForm) {
+  <div>
+    <div class="mb-6 border-b border-sumi-200 pb-4">
+      <div class="flex items-center gap-4 mb-4 flex-wrap">
+        <h2 class="text-2xl font-bold text-sumi-800 text-left m-0">Matrícula: {{ alunoSelecionadoId }}</h2>
+        <span
+          [ngClass]="aluno.aluno.modo_treino === 'Modo Legado' ? 'bg-ouro-600 text-white' : 'bg-sumi-700 text-white'"
+          class="px-4 py-1.5 rounded-full text-xs font-black tracking-wider shadow-sm uppercase"><lucide-icon name="swords" class="w-3.5 h-3.5"></lucide-icon> {{
+          aluno.aluno.modo_treino }}</span>
+        @if (aluno.aluno.status_atividade === 'Aula Experimental') {
+        <span
+          class="bg-ouro-600 text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest shadow-sm uppercase"><lucide-icon name="target" class="w-3.5 h-3.5"></lucide-icon>
+          AULA EXPERIMENTAL</span>
+        }
+
+        @if (aluno.aluno.status_atividade === 'Trancado') {
+        <span
+          class="bg-carmesim-600 text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest shadow-sm uppercase"><lucide-icon name="shield-alert" class="w-3.5 h-3.5"></lucide-icon>
+          TRANCADO</span>
+        }
+        @if (aluno.aluno.status_atividade === 'Trancado') {
+        <button (click)="destrancarMatricula()"
+          class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-full text-xs font-black shadow-sm transition-colors flex items-center gap-1 uppercase">
+          <lucide-icon name="shield-check" class="w-3.5 h-3.5"></lucide-icon>
+          Desbloquear (Acordo)
+        </button>
+        }
+
+      </div>
+      <div class="flex gap-2">
+        <button (click)="abaAtivaAluno = 'resumo'"
+          [ngClass]="abaAtivaAluno === 'resumo' ? 'border-b-2 border-sumi-700 text-sumi-700 font-bold' : 'text-sumi-500 hover:text-sumi-700'"
+          class="px-4 py-2 text-sm transition-colors text-left">Visão Geral</button>
+        <button (click)="abaAtivaAluno = 'ficha'"
+          [ngClass]="abaAtivaAluno === 'ficha' ? 'border-b-2 border-sumi-700 text-sumi-700 font-bold' : 'text-sumi-500 hover:text-sumi-700'"
+          class="px-4 py-2 text-sm transition-colors text-left">Ficha Completa</button>
+        <button (click)="abaAtivaAluno = 'financeiro'"
+          [ngClass]="abaAtivaAluno === 'financeiro' ? 'border-b-2 border-sumi-700 text-sumi-700 font-bold' : 'text-sumi-500 hover:text-sumi-700'"
+          class="px-4 py-2 text-sm transition-colors text-left">Módulo Financeiro</button>
+        <button (click)="abaAtivaAluno = 'frequencia'"
+          [ngClass]="abaAtivaAluno === 'frequencia' ? 'border-b-2 border-sumi-700 text-sumi-700 font-bold' : 'text-sumi-500 hover:text-sumi-700'"
+          class="px-4 py-2 text-sm transition-colors text-left">Frequência</button>
+      </div>
+    </div>
+
+    <!-- ================= ABA 1: VISÃO GERAL ================= -->
+    @if (abaAtivaAluno === 'resumo') {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">
+        <h3 class="text-lg font-bold text-sumi-700 text-left mb-4">Gestão de Status</h3>
+        <p class="text-sm text-sumi-600 mb-2 text-left"><strong>Nome:</strong> {{ aluno.aluno.nome }}</p>
+        <div class="mb-4 mt-2 text-left">
+          <label class="block text-xs font-bold text-sumi-600 mb-1 text-left">Mudar Status Manualmente:</label>
+          <select [ngModel]="aluno.aluno.status_atividade" (change)="alterarStatus($event)"
+            class="w-full p-2 text-sm border border-sumi-300 rounded focus:outline-none focus:ring-1 focus:ring-sumi-500 bg-sumi-50 text-left">
+            <option value="Ativo">Ativo (Visível no Tatame)</option>
+            <option value="Aula Experimental">Aula Experimental</option>
+            <option value="Inativo">Inativo (Oculto)</option>
+            <option value="Trancado">Trancado (Oculto)</option>
+          </select>
+        </div>
+        <div class="mt-auto text-left"><button (click)="toggleHoraFlexivel()"
+            [class.bg-ouro-600]="aluno.aluno.hora_flexivel" [class.bg-sumi-400]="!aluno.aluno.hora_flexivel"
+            class="text-xs text-white font-bold px-3 py-2 rounded shadow transition-colors w-full">{{
+            aluno.aluno.hora_flexivel ? 'Hora Real: LIGADO' : 'Hora Real: DESLIGADO' }}</button></div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col justify-center items-center">
+        <h3 class="text-lg font-bold text-sumi-700 text-left w-full mb-2">Caixa</h3>
+        <p class="text-sm text-sumi-500 mb-4 text-left w-full">Plano Atual: {{ aluno.aluno.modelo_plano }}</p>
+        <div class="text-center bg-sumi-50 border border-sumi-200 rounded-lg p-6 w-full mb-4">
+          <p class="text-xs font-bold text-sumi-500 mb-1">Total em Aberto</p>
+          <p class="text-3xl font-bold" [ngClass]="totalPendencias > 0 ? 'text-carmesim-600' : 'text-emerald-600'">{{
+            formatarMoeda(totalPendencias) }}</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-sumi-700 mb-4 text-left">Progressão Marcial</h3>
+          <p class="text-sm text-sumi-600 mb-2 text-left"><strong>Graduação Atual:</strong> <span
+              class="text-sumi-700 font-bold">{{ aluno.aluno.graduacao_atual }}</span></p>
+          <p class="text-sm text-sumi-600 mb-2 text-left"><strong>Total no Tatame:</strong> {{
+            aluno.aluno.total_horas_treinadas }}</p>
+
+          <div class="mt-3 mb-2">
+            <div class="flex justify-between text-[11px] font-bold text-sumi-500 mb-1.5 uppercase tracking-wider">
+              <span>Progresso</span>
+              <span [ngClass]="aluno.aluno.meses_faltantes === 0 ? 'text-emerald-600' : ''">{{
+                aluno.aluno.meses_faltantes === 0 ? 'Apto!' : aluno.aluno.meses_faltantes + ' meses restantes' }}</span>
+            </div>
+            <div class="w-full bg-sumi-200 rounded-full h-2.5 relative overflow-hidden shadow-inner">
+              <div
+                class="bg-gradient-to-r from-carmesim-400 to-sumi-700 h-2.5 rounded-full transition-all duration-1000 ease-in-out"
+                [style.width.%]="aluno.aluno.progresso_percentual"></div>
+            </div>
+          </div>
+
+        </div>
+        @if (aluno.aluno.apto_exame) {
+        <div class="mt-auto p-3 bg-ouro-50 border border-ouro-200 rounded-lg">
+          <p class="text-sm font-bold text-ouro-700 text-left mb-2"><lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon> Apto para Exame!</p>
+          <div class="flex gap-2">
+            <select [(ngModel)]="novaGraduacao"
+              class="w-full p-2 border border-ouro-300 rounded text-xs text-left bg-white outline-none">
+              @for (grad of listaGraduacoes; track grad) {
+              <option [value]="grad">{{ grad }}</option>
+              }
+            </select>
+            <button (click)="promoverAluno()"
+              class="bg-ouro-600 hover:bg-ouro-700 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors shadow">Promover</button>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- ================= ABA 2: FICHA COMPLETA ================= -->
+    @if (abaAtivaAluno === 'ficha') {
+    <div class="bg-white p-8 rounded-lg shadow-sm border border-sumi-200">
+
+      <div class="flex justify-between items-center border-b pb-4 mb-6">
+        <h3 class="text-xl font-bold text-sumi-800 m-0">Ficha Cadastral</h3>
+        <div class="flex gap-2">
+          <button (click)="editandoFicha ? salvarEdicaoFicha() : entrarEdicaoFicha()"
+            [ngClass]="editandoFicha ? 'bg-emerald-600 text-white' : 'bg-sumi-200 text-sumi-800'"
+            class="text-xs font-bold py-2 px-6 rounded shadow-sm hover:opacity-90">
+            {{ editandoFicha ? 'Confirmar e Atualizar Dados' : 'Editar Ficha' }}
+          </button>
+          @if (editandoFicha) {
+          <button (click)="editandoFicha = false"
+            class="bg-carmesim-600 text-white text-xs font-bold py-2 px-4 rounded shadow-sm hover:opacity-90">Cancelar</button>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-sm font-bold text-carmesim-600 uppercase border-b border-sumi-100 pb-2 mb-4 tracking-wider">
+              Dados Cadastrais</h3>
+            <div class="space-y-3 text-sm text-sumi-700">
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Nome Completo:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800 font-semibold">{{ aluno.aluno.nome }}</p>
+                }
+                @if (editandoFicha) {
+                <input type="text" [(ngModel)]="cloneFicha.nome"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 focus:ring-1 focus:ring-carmesim-500 outline-none">
+                }
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-sumi-400 mb-1">Data de Nascimento:</label>
+                  @if (!editandoFicha) {
+                  <p class="text-sm text-sumi-800">{{ aluno.aluno.data_nascimento ?
+                    (aluno.aluno.data_nascimento | date:'dd/MM/yyyy') : 'Não informada' }}</p>
+                  }
+                  @if (editandoFicha) {
+                  <input type="date" [(ngModel)]="cloneFicha.data_nascimento"
+                    class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 focus:ring-1 focus:ring-carmesim-500 outline-none">
+                  }
+                </div>
+                @if (!editandoFicha) {
+                <div>
+                  <label class="block text-xs font-bold text-sumi-400 mb-1">Idade:</label>
+                  <p class="text-sm text-sumi-800">{{ aluno.aluno.idade !== null ? aluno.aluno.idade + ' anos' : '--'
+                    }}</p>
+                </div>
+                }
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Graduação Atual:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800 font-semibold">{{ aluno.aluno.graduacao_atual }}
+                </p>
+                }
+                @if (editandoFicha) {
+                <select [(ngModel)]="cloneFicha.graduacao_atual"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 outline-none">
+                  @for (grad of listaGraduacoes; track grad) {
+                  <option [value]="grad">{{ grad }}</option>
+                  }
+                </select>
+                }
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Nacionalidade:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800">{{ aluno.aluno.nacionalidade }}</p>
+                }
+                @if (editandoFicha) {
+                <input type="text" [(ngModel)]="cloneFicha.nacionalidade"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 focus:ring-1 focus:ring-carmesim-500 outline-none">
+                }
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Naturalidade:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800">{{ aluno.aluno.naturalidade || 'Não informada'
+                  }}</p>
+                }
+                @if (editandoFicha) {
+                <input type="text" [(ngModel)]="cloneFicha.naturalidade"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 focus:ring-1 focus:ring-carmesim-500 outline-none">
+                }
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Endereço Residencial:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800">{{ aluno.aluno.endereco || 'Não cadastrado' }}
+                </p>
+                }
+                @if (editandoFicha) {
+                <textarea [(ngModel)]="cloneFicha.endereco"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 focus:ring-1 focus:ring-carmesim-500 outline-none"
+                  rows="2"></textarea>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold text-carmesim-600 uppercase border-b border-sumi-100 pb-2 mb-4 tracking-wider">
+              Filiação & Emergência</h3>
+            <div class="space-y-2 text-sm text-sumi-700">
+
+              <div class="p-4 rounded border mb-4 shadow-sm"
+                [ngClass]="isMenorDeIdadeEdicao ? 'bg-carmesim-50 border-carmesim-200' : 'bg-sumi-50 border-sumi-200'">
+                <p class="text-xs font-bold uppercase tracking-wider mb-3 text-sumi-500">Filiação @if (isMenorDeIdadeEdicao) {<span
+                    class="text-carmesim-600 font-black">(OBRIGATÓRIO - MENOR)</span>}</p>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Nome do Pai:</label>
+                    @if (!editandoFicha) {
+                    <p class="text-sm text-sumi-800">{{ aluno.aluno.nome_pai || 'Não cadastrado'
+                      }}</p>
+                    }
+                    @if (editandoFicha) {
+                    <input type="text" [(ngModel)]="cloneFicha.nome_pai"
+                      class="w-full p-2 border border-sumi-300 rounded text-sm bg-white" placeholder="Nome do Pai">
+                    }
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Nome da Mãe:</label>
+                    @if (!editandoFicha) {
+                    <p class="text-sm text-sumi-800">{{ aluno.aluno.nome_mae || 'Não cadastrado'
+                      }}</p>
+                    }
+                    @if (editandoFicha) {
+                    <input type="text" [(ngModel)]="cloneFicha.nome_mae"
+                      class="w-full p-2 border border-sumi-300 rounded text-sm bg-white" placeholder="Nome da Mãe">
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded border bg-sumi-50 border-sumi-200 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider mb-3 text-sumi-400">Contato de Emergência</p>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Nome do Contato:</label>
+                    @if (!editandoFicha) {
+                    <p class="text-sm text-sumi-800">{{ aluno.aluno.contato_emergencia_nome }}
+                    </p>
+                    }
+                    @if (editandoFicha) {
+                    <input type="text" [(ngModel)]="cloneFicha.contato_emergencia_nome"
+                      class="w-full p-2 border rounded text-sm bg-white">
+                    }
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Parentesco:</label>
+                    @if (!editandoFicha) {
+                    <p class="text-sm text-sumi-800">{{
+                      aluno.aluno.contato_emergencia_parentesco }}</p>
+                    }
+                    @if (editandoFicha) {
+                    <input type="text" [(ngModel)]="cloneFicha.contato_emergencia_parentesco"
+                      class="w-full p-2 border rounded text-sm bg-white">
+                    }
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Telefone Emergência:</label>
+                    @if (!editandoFicha) {
+                    <p class="text-sm text-sumi-800 font-bold">{{
+                      aluno.aluno.contato_emergencia_telefone }}</p>
+                    }
+                    @if (editandoFicha) {
+                    <input type="text" [(ngModel)]="cloneFicha.contato_emergencia_telefone"
+                      class="w-full p-2 border rounded text-sm bg-white">
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-sm font-bold text-carmesim-600 uppercase border-b border-sumi-100 pb-2 mb-4 tracking-wider">
+              Contato & Comunicação</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">WhatsApp:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800">{{ aluno.aluno.whatsapp || 'Não informado' }}
+                </p>
+                }
+                @if (editandoFicha) {
+                <input type="text" [(ngModel)]="cloneFicha.whatsapp"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-white">
+                }
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">E-mail Residencial:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800">{{ aluno.aluno.email || 'Não informado' }}</p>
+                }
+                @if (editandoFicha) {
+                <input type="text" [(ngModel)]="cloneFicha.email"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-white">
+                }
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold text-carmesim-600 uppercase border-b border-sumi-100 pb-2 mb-4 tracking-wider">
+              Segurança Médica & Anamnese</h3>
+            <div class="bg-carmesim-50 p-4 rounded border border-carmesim-200">
+              <p class="text-sm text-carmesim-800 font-bold mb-2"><lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon> Anamnese Oficial do Aluno:</p>
+              @if (!editandoFicha) {
+              <p
+                class="text-xs text-carmesim-900 leading-relaxed font-mono bg-white p-2 rounded border">{{
+                aluno.aluno.restricao_medica || 'Nenhuma restrição de anamnese registrada.' }}</p>
+              }
+
+              @if (editandoFicha) {
+              <div
+                class="space-y-2 bg-white p-3 rounded border border-carmesim-100 h-[220px] overflow-y-auto">
+                @for (p of perguntasAnamnese; track p.chave; let idx = $index) {
+                <div
+                  class="flex justify-between items-center bg-sumi-50 p-1.5 rounded border text-[11px]">
+                  <span class="font-bold text-sumi-700">{{ p.label }}</span>
+                  <div class="flex gap-2">
+                    <label><input type="radio" [name]="'anamnese_edit_' + p.chave + idx"
+                        [(ngModel)]="respostasAnamneseEdicao[p.chave]" value="sim"> Sim</label>
+                    <label><input type="radio" [name]="'anamnese_edit_' + p.chave + idx"
+                        [(ngModel)]="respostasAnamneseEdicao[p.chave]" value="nao"> Não</label>
+                  </div>
+                </div>
+                }
+                <textarea [(ngModel)]="obsMedicaEdicao" placeholder="Detalhes extras..."
+                  class="w-full p-2 text-xs border rounded bg-white mt-1" rows="2"></textarea>
+              </div>
+              }
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold text-carmesim-600 uppercase border-b border-sumi-100 pb-2 mb-4 tracking-wider">
+              Modalidade & Histórico</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Modalidade Marcial:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-800 font-bold">{{ aluno.aluno.modo_treino }}</p>
+                }
+                @if (editandoFicha) {
+                <select [(ngModel)]="cloneFicha.modo_treino"
+                  class="w-full p-2 border rounded text-sm bg-white">
+                  <option value="Modo Dojo">Modo Dojo</option>
+                  <option value="Modo Legado">Modo Legado</option>
+                </select>
+                }
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Acordo Contratual Comercial:</label>
+                @if (!editandoFicha) {
+                <p
+                  class="text-sm text-sumi-900 font-semibold bg-emerald-50/50 p-2 border border-emerald-100 rounded">{{
+                  aluno.aluno.acordo_contratual || 'Nenhum acordo customizado registrado.' }}</p>
+                }
+                @if (editandoFicha) {
+                <textarea [(ngModel)]="cloneFicha.acordo_contratual"
+                  class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 focus:ring-1 focus:ring-carmesim-500 outline-none"
+                  rows="2" placeholder="Ex: Aluno treina 2h toda terça-feira do mês."></textarea>
+                }
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-sumi-400 mb-1">Histórico Técnico Prévio:</label>
+                @if (!editandoFicha) {
+                <p class="text-sm text-sumi-600 bg-sumi-50 p-2 rounded border border-dashed">{{
+                  aluno.aluno.historico_marcial || 'Nenhum histórico registrado.' }}</p>
+                }
+                @if (editandoFicha) {
+                <textarea [(ngModel)]="cloneFicha.historico_marcial"
+                  class="w-full p-2 border rounded text-sm bg-white" rows="2"></textarea>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t pt-8 mt-6">
+        <h3 class="text-lg font-bold text-carmesim-800 mb-4 flex items-center gap-2">Anotações Pedagógicas</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-carmesim-50 p-5 rounded border border-carmesim-200 flex flex-col gap-3 shadow-inner h-fit">
+            <input type="text" [(ngModel)]="novaNotaTitulo" placeholder="Título do Post-it..."
+              class="w-full p-2.5 text-sm border rounded bg-white shadow-sm outline-none">
+            <textarea [(ngModel)]="novaNotaPedagogica" class="w-full p-3 text-sm border rounded bg-white shadow-sm"
+              rows="4" placeholder="Anotações técnicas..."></textarea>
+            <button (click)="salvarDiarioPedagogico()"
+              class="bg-carmesim-600 text-white px-5 py-2.5 rounded text-sm font-bold w-full mt-2 flex items-center justify-center gap-2"><lucide-icon
+                name="sticky-note" class="w-4 h-4"></lucide-icon> Fixar Post-it</button>
+          </div>
+          <div class="bg-sumi-50 p-4 rounded border border-sumi-200 max-h-[350px] overflow-y-auto shadow-inner">
+            @for (nota of notasPedagogicas; track nota) {
+            <details
+              class="group bg-ouro-50 p-4 rounded shadow-sm mb-3 border border-ouro-200 cursor-pointer">
+              <summary
+                class="font-bold text-sm text-ouro-900 flex justify-between items-center outline-none list-none">
+                <span class="flex items-center gap-1.5"><lucide-icon name="sticky-note"
+                    class="w-3.5 h-3.5"></lucide-icon> {{ nota.titulo }}</span>
+                <span class="text-[10px] text-ouro-700 font-mono">{{ nota.data }}</span>
+              </summary>
+              <p class="mt-3 text-sm text-sumi-700 border-t border-ouro-200/60 pt-3 leading-relaxed">{{ nota.texto }}
+              </p>
+            </details>
+            }
+            @if (notasPedagogicas.length === 0) {
+            <p class="text-sumi-400 italic text-sm text-center mt-12">Nenhum
+              Post-it afixado ainda.</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ================= ABA 3: FINANCEIRO E CONTRATO EMBUTIDO ================= -->
+    @if (abaAtivaAluno === 'financeiro') {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="flex flex-col gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">
+
+          <div class="flex justify-between items-center border-b pb-3 mb-4">
+            <div class="flex items-center gap-3">
+              <h3 class="text-lg font-bold text-sumi-700 m-0">Gestão de Contrato</h3>
+              @if (aluno.aluno.inclui_shokubai && !editandoContrato) {
+              <span
+                class="bg-ouro-100 text-ouro-800 text-[10px] font-black px-2 py-0.5 rounded border border-ouro-200 uppercase"><lucide-icon name="wallet" class="w-3.5 h-3.5"></lucide-icon>
+                KIT SHOKUBAI</span>
+              }
+            </div>
+            <div class="flex gap-2">
+              @if (!editandoContrato) {
+              <button (click)="entrarEdicaoContrato()"
+                class="bg-sumi-200 hover:bg-sumi-300 text-sumi-800 text-xs font-bold py-2 px-3 rounded shadow-sm"><lucide-icon name="pencil" class="w-3.5 h-3.5"></lucide-icon>
+                Editar Contrato</button>
+              }
+              <button (click)="exibirModalPagamento = true"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-4 rounded shadow flex items-center justify-center gap-2"><lucide-icon
+                  name="wallet" class="w-4 h-4"></lucide-icon> Baixar Caixa</button>
+            </div>
+          </div>
+
+          <!-- CORREÇÃO: Oculação de Vencimento para Horas Livres na Edição também -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-sumi-50 p-3 rounded border text-left">
+              <p class="text-xs text-sumi-500 font-bold mb-1">Modelo de Plano</p>
+              @if (!editandoContrato) {
+              <p class="text-sm text-sumi-800 font-bold">{{ aluno.aluno.modelo_plano }}</p>
+              }
+              @if (editandoContrato) {
+              <select [(ngModel)]="cloneContrato.modelo_plano"
+                class="w-full p-1.5 border rounded text-sm bg-white outline-none">
+                <option value="Horas Livres">Horas Livres</option>
+                <option value="Mensalidade">Mensalidade</option>
+                <option value="Intensivão">Intensivão</option>
+              </select>
+              }
+            </div>
+            <div class="bg-sumi-50 p-3 rounded border text-left">
+              <p class="text-xs text-sumi-500 font-bold mb-1">Valor Mensal Fechado (Fixo)</p>
+              @if (!editandoContrato) {
+              <p class="text-sm text-sumi-800 font-bold">{{
+                formatarMoeda(aluno.aluno.valor_contratual_fixo) }}</p>
+              }
+              @if (editandoContrato) {
+              <input type="number" [(ngModel)]="cloneContrato.valor_contratual_fixo"
+                class="w-full p-1.5 border rounded text-sm bg-white outline-none">
+              }
+            </div>
+
+            @if ((!editandoContrato && aluno.aluno.modelo_plano === 'Mensalidade') || (editandoContrato && cloneContrato.modelo_plano === 'Mensalidade')) {
+            <div class="bg-sumi-50 p-3 rounded border text-left">
+              <p class="text-xs text-sumi-500 font-bold mb-1">Dia de Vencimento Fixo</p>
+              @if (!editandoContrato) {
+              <p class="text-sm text-sumi-800 font-bold">Todo dia {{
+                aluno.aluno.dia_vencimento || '10' }}</p>
+              }
+              @if (editandoContrato) {
+              <input type="number" min="1" max="28" [(ngModel)]="cloneContrato.dia_vencimento"
+                class="w-full p-1.5 border rounded text-sm bg-white outline-none">
+              }
+            </div>
+            }
+
+            <div class="bg-sumi-50 p-3 rounded border text-left"
+              [ngClass]="(!editandoContrato && aluno.aluno.modelo_plano === 'Mensalidade') || (editandoContrato && cloneContrato.modelo_plano === 'Mensalidade') ? '' : 'md:col-span-2'">
+              <p class="text-xs text-sumi-500 font-bold mb-1">Valor Base de Acordo (Maleável)</p>
+              @if (!editandoContrato) {
+              <p class="text-sm text-sumi-800 font-bold">{{
+                formatarMoeda(aluno.aluno.valor_base) }}</p>
+              }
+              @if (editandoContrato) {
+              <input type="number" [(ngModel)]="cloneContrato.valor_base"
+                class="w-full p-1.5 border rounded text-sm bg-white outline-none">
+              }
+            </div>
+          </div>
+
+          <details class="bg-ouro-50 rounded border border-ouro-200 mb-4 group overflow-hidden"
+            [attr.open]="editandoContrato ? true : null">
+            <summary
+              class="font-bold text-xs text-ouro-800 p-3 cursor-pointer outline-none select-none list-none flex justify-between">
+              <span><lucide-icon name="clipboard-list" class="w-3.5 h-3.5"></lucide-icon> Condições Especiais / Observações de Caixa</span>
+              <span class="text-[10px] opacity-70">{{ editandoContrato ? 'Editando...' : 'Clique para expandir'
+                }}</span>
+            </summary>
+            <div class="p-3 border-t border-ouro-200/50 bg-white/50">
+              @if (!editandoContrato) {
+              <p class="text-sm text-sumi-700 leading-relaxed">{{
+                aluno.aluno.observacao_financeira || 'Nenhuma observação financeira.' }}</p>
+              }
+              @if (editandoContrato) {
+              <textarea [(ngModel)]="cloneContrato.observacao_financeira"
+                class="w-full p-2 text-sm border border-ouro-300 rounded outline-none focus:ring-1 focus:ring-ouro-500 bg-white"
+                rows="2" placeholder="Ex: Aluno trancado, acordo amigável, etc."></textarea>
+              }
+            </div>
+          </details>
+
+          @if (editandoContrato) {
+          <div class="flex justify-end mb-4 border-b pb-4 gap-2">
+            <button (click)="editandoContrato = false"
+              class="bg-sumi-200 hover:bg-sumi-300 px-4 py-2 rounded text-xs font-bold text-sumi-700">Cancelar
+              Alterações</button>
+            <button (click)="salvarEdicaoContrato()"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded shadow-sm text-xs transition-colors"><lucide-icon name="save" class="w-3.5 h-3.5"></lucide-icon>
+              Salvar Novo Contrato</button>
+          </div>
+          }
+
+          <h4 class="text-md font-bold text-sumi-700 mb-3 text-left mt-2">Valores em Aberto</h4>
+          <div class="flex flex-col gap-2">
+            @for (p of aluno.painel_pendencias; track p) {
+            <div
+              class="flex justify-between items-center bg-carmesim-50 border border-carmesim-200 p-3 rounded text-left"><span
+                class="text-sm font-bold text-carmesim-700 text-left"><lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon> {{ p.nome }}</span><span
+                class="text-sm font-mono font-bold text-carmesim-700">{{ formatarMoeda(p.valor) }}</span></div>
+            }
+            @if (aluno.painel_pendencias.length === 0) {
+            <div
+              class="text-sm italic text-emerald-600 font-bold bg-emerald-50 p-4 rounded border border-emerald-200 text-left">
+              <lucide-icon name="check" class="w-4 h-4"></lucide-icon> Nenhuma pendência em aberto. O guerreiro está em dia!</div>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">
+          <h3 class="text-lg font-bold text-sumi-700 mb-4 border-b pb-3 text-left">Extrato de Recebimentos</h3>
+          <div class="overflow-y-auto max-h-[300px] border border-sumi-200 rounded">
+            <table class="w-full text-left text-sm text-sumi-600">
+              <thead class="bg-sumi-50 text-sumi-500 uppercase sticky top-0 shadow-sm">
+                <tr>
+                  <th class="py-2 px-3 text-left">Data</th>
+                  <th class="py-2 px-3 text-left">Método</th>
+                  <th class="py-2 px-3 text-left">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (rec of aluno.extrato_recebimentos; track rec) {
+                <tr class="border-b hover:bg-sumi-50 transition-colors">
+                  <td class="py-3 px-3 text-left">{{ rec.data }}</td>
+                  <td class="py-3 px-3 text-left font-bold text-sumi-700">{{ rec.metodo }}</td>
+                  <td class="py-3 px-3 text-left font-bold text-emerald-600">{{ formatarMoeda(rec.valor) }}</td>
+                </tr>
+                }
+                @if (aluno.extrato_recebimentos.length === 0) {
+                <tr>
+                  <td colspan="3" class="py-6 text-center text-sumi-400 italic text-left">Nenhum pagamento registrado.
+                  </td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">
+        <h3 class="text-lg font-bold text-sumi-700 mb-4 border-b pb-3 text-left">Histórico de Treinos e Faturamento
+        </h3>
+        <div class="overflow-y-auto max-h-[700px] border border-sumi-200 rounded mt-2">
+          <table class="w-full text-left text-xs text-sumi-600">
+            <thead class="bg-sumi-50 text-sumi-500 uppercase sticky top-0 shadow-sm">
+              <tr>
+                <th class="py-2 px-3 text-left">Data e Horário (Duração)</th>
+                <th class="py-2 px-3 text-left text-ouro-600">Desconto</th>
+                <th class="py-2 px-3 text-left">Total Gerado</th>
+                <th class="py-2 px-3 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of aluno.historico_pagamentos; track s) {
+              <ng-container>
+                <tr class="border-b hover:bg-sumi-50">
+                  <td class="py-2 px-3 text-left">
+                    <strong class="text-sumi-800">{{ s.data }}</strong><br>
+                    <span class="text-[10px] text-sumi-500">{{ s.horario }}<br><strong class="text-carmesim-700">{{
+                        s.horas_treinadas_formatadas }}</strong></span>
+                  </td>
+                  <td class="py-2 px-3 text-left text-ouro-600 font-mono">{{ formatarMoeda(s.desconto) }}</td>
+                  <td class="py-2 px-3 text-left font-bold text-sumi-800 font-mono">{{ formatarMoeda(s.valor) }}</td>
+                  <td class="py-2 px-3 text-left">
+                    @if (s.status_pagamento === 'PRESENÇA') {
+                    <span
+                      class="bg-sumi-100 text-sumi-700 border border-sumi-200 px-2 py-1 rounded-[4px] text-[10px] font-bold tracking-wider">PRESENÇA</span>
+                    }
+                    @if (s.status_pagamento === 'PAGO') {
+                    <span
+                      class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-1 rounded-[4px] text-[10px] font-bold tracking-wider">PAGO</span>
+                    }
+                    @if (s.status_pagamento === 'PENDENTE') {
+                    <span
+                      class="bg-carmesim-100 text-carmesim-800 border border-carmesim-200 px-2 py-1 rounded-[4px] text-[10px] font-bold tracking-wider">PENDENTE</span>
+                    }
+                  </td>
+                </tr>
+                @if (s.diario_sensei) {
+                <tr class="border-b bg-carmesim-50/50">
+                  <td colspan="4"
+                    class="py-2 px-3 text-[10px] italic text-sumi-600 text-left border-l-2 border-carmesim-400"><strong>Nota
+                      do Tatame:</strong> {{ s.diario_sensei }}</td>
+                </tr>
+                }
+              </ng-container>
+              }
+              @if (aluno.historico_pagamentos.length === 0) {
+              <tr>
+                <td colspan="4" class="py-6 text-center text-sumi-400 italic text-left">Nenhum treino registrado ainda.
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ================= ABA 4: HISTÓRICO INDIVIDUAL DE FREQUÊNCIA ================= -->
+    @if (abaAtivaAluno === 'frequencia') {
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200">
+      <h3 class="text-lg font-bold text-sumi-700 mb-4 border-b pb-3 text-left">Histórico de Frequência das Aulas</h3>
+      <div class="overflow-y-auto max-h-[500px] border border-sumi-200 rounded mt-2">
+        <table class="w-full text-left text-sm text-sumi-600">
+          <thead class="bg-sumi-50 text-sumi-500 uppercase sticky top-0 shadow-sm">
+            <tr>
+              <th class="py-3 px-4 text-left">Data da Chamada</th>
+              <th class="py-3 px-4 text-left">Frequência Registrada</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of aluno.historico_presencas; track p) {
+            <tr class="border-b hover:bg-sumi-50 transition-colors">
+              <td class="py-3 px-4 text-left font-bold text-sumi-800">{{ p.data }}</td>
+              <td class="py-3 px-4 text-left">
+                <span
+                  [ngClass]="p.status === 'Presente' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-carmesim-100 text-carmesim-800 border-carmesim-300'"
+                  class="text-xs font-bold px-3 py-1 rounded border tracking-widest uppercase">
+                  {{ p.status }}
+                </span>
+              </td>
+            </tr>
+            }
+            @if (aluno.historico_presencas?.length === 0) {
+            <tr>
+              <td colspan="2" class="py-6 text-center text-sumi-400 italic text-left">Nenhuma chamada processada para
+                este guerreiro ainda.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+  </div>
+  } @else {
+  <p class="text-sumi-400 italic text-sm mt-4 text-left">Selecione um aluno acima para carregar o histórico cadastral.
+  </p>
+  }
+
+  <!-- MODAL DE CAIXA -->
+  @if (exibirModalPagamento) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-96">
+      <h3 class="text-xl font-bold text-sumi-800 mb-4 text-left">Registrar Pagamento</h3>
+      <div class="mb-4">
+        <label class="block text-sm font-bold text-sumi-700 mb-2 text-left">Valor Recebido (R$)</label>
+        <input type="number" [(ngModel)]="valorPagamento"
+          class="w-full p-2 border border-sumi-300 rounded text-left focus:outline-none focus:ring-2 focus:ring-green-500">
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-sumi-700 mb-2 text-left">Método de Pagamento</label>
+        <select [(ngModel)]="metodoPagamento"
+          class="w-full p-2 border border-sumi-300 rounded text-left focus:outline-none focus:ring-2 focus:ring-green-500">
+          <option value="Pix">Pix</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Cartão">Cartão</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button (click)="exibirModalPagamento = false"
+          class="px-4 py-2 bg-sumi-200 text-sumi-800 rounded font-bold hover:bg-sumi-300 transition-colors">Cancelar</button>
+        <button (click)="confirmarPagamento()"
+          class="px-4 py-2 bg-green-600 text-white rounded font-bold shadow hover:bg-green-700 transition-colors">Confirmar</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

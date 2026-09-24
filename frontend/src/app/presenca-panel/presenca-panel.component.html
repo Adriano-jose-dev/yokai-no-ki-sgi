@@ -1,0 +1,70 @@
+<div class="p-6 text-left bg-sumi-50 min-h-screen">
+    <div class="flex justify-between items-center mb-6 border-b pb-4 border-sumi-200">
+        <h2 class="font-display text-2xl font-bold text-sumi-900 flex items-center gap-2">
+            <lucide-icon name="clipboard-list" class="w-6 h-6 text-carmesim-600"></lucide-icon>
+            Controle Diário de Chamada
+        </h2>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-bold text-sumi-600">Data da Aula:</label>
+                <input type="date" [(ngModel)]="dataFiltro" (change)="carregarChamada()"
+                    class="p-2 border border-sumi-200 rounded-lg shadow-sm focus:ring-1 focus:ring-carmesim-500 outline-none">
+            </div>
+            <button (click)="finalizarAula()"
+                class="bg-sumi-800 hover:bg-sumi-900 text-white font-bold py-2 px-6 rounded-lg shadow transition-colors flex items-center gap-2">
+                <lucide-icon name="check" class="w-4 h-4"></lucide-icon>
+                Finalizar Aula
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-sumi-200 overflow-hidden">
+        <table class="w-full text-left text-sm text-sumi-600">
+            <thead class="bg-sumi-100 text-sumi-700 font-bold uppercase border-b border-sumi-200">
+                <tr>
+                    <th class="py-3 px-4">Aluno</th>
+                    <th class="py-3 px-4">Graduação</th>
+                    <th class="py-3 px-4">Modalidade</th>
+                    <th class="py-3 px-4 text-center">Registro de Frequência</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (a of alunosChamada; track a.id_matricula) {
+                <tr class="border-b border-sumi-100 hover:bg-sumi-50 transition-colors">
+                    <td class="py-4 px-4">
+                        <strong class="text-sumi-900 text-base block">{{ a.nome }}</strong>
+                        <span class="text-xs text-sumi-400 font-mono">#{{ a.id_matricula }}</span>
+                    </td>
+                    <td class="py-4 px-4 font-bold text-carmesim-700">{{ a.graduacao_atual }}</td>
+                    <td class="py-4 px-4">
+                        <span
+                            [ngClass]="a.modo_treino === 'Modo Legado' ? 'bg-ouro-100 text-ouro-800 border-ouro-200' : 'bg-sumi-100 text-sumi-700 border-sumi-200'"
+                            class="text-xs font-bold px-2 py-0.5 rounded border">
+                            {{ a.modo_treino }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <div class="flex justify-center gap-2">
+                            <button (click)="marcarPresenca(a.id_matricula, 'Presente')"
+                                [ngClass]="a.status === 'Presente' ? 'bg-emerald-600 text-white shadow' : 'bg-sumi-100 text-sumi-600 hover:bg-emerald-50'"
+                                class="px-4 py-2 text-xs font-black rounded border border-sumi-200 tracking-wider uppercase transition-all flex items-center gap-1">
+                                <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>
+                                Presente
+                            </button>
+                            <button (click)="marcarPresenca(a.id_matricula, 'Ausente')"
+                                [ngClass]="a.status === 'Ausente' ? 'bg-carmesim-600 text-white shadow' : 'bg-sumi-100 text-sumi-600 hover:bg-carmesim-50'"
+                                class="px-4 py-2 text-xs font-black rounded border border-sumi-200 tracking-wider uppercase transition-all flex items-center gap-1">
+                                <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
+                                Ausente
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        @if (alunosChamada.length === 0) {
+        <div class="p-8 text-center text-sumi-400 italic">Nenhum aluno na chamada desta data.</div>
+        }
+    </div>
+</div>

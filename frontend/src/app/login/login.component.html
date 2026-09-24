@@ -1,0 +1,65 @@
+<div
+  class="min-h-screen bg-gradient-to-br from-sumi-950 via-sumi-900 to-sumi-800 flex items-center justify-center px-4 font-sans">
+
+  <div class="w-full max-w-md">
+
+    <div class="text-center mb-8">
+      <!-- Caixa inteligente do logo: aceita qualquer proporção (quadrada,
+           retangular ou horizontal) sem achatar nem estourar o layout.
+           object-contain preserva a proporção; max-h/max-w limitam o tamanho. -->
+      <div class="mx-auto mb-4 flex items-center justify-center h-24 max-w-[16rem]">
+        <img src="assets/logo YnK 1.jpeg" alt="Yōkai no Ki Ryūha"
+          class="max-h-24 max-w-full w-auto h-auto object-contain drop-shadow-lg">
+      </div>
+      <h1 class="mt-3 font-display text-2xl font-bold text-ouro-300 tracking-[0.2em] uppercase">Yōkai no Ki Ryūha</h1>
+      <p class="text-sumi-300 text-sm mt-2 tracking-wide">Sistema de Gestão Interna do Dojo</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-2xl p-8 border-t-4 border-carmesim-600">
+      <h2 class="font-display text-lg font-bold text-sumi-900 mb-6 text-center tracking-wide">Acesso Restrito</h2>
+
+      <form (ngSubmit)="entrar()" #loginForm="ngForm" class="space-y-5">
+
+        <div>
+          <label for="username" class="block text-xs font-bold text-sumi-500 uppercase mb-1 tracking-wide">Usuário</label>
+          <input id="username" name="username" type="text" [(ngModel)]="username" autocomplete="username"
+            [disabled]="carregando"
+            class="w-full p-2.5 border border-sumi-200 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-carmesim-500 focus:border-carmesim-500 disabled:bg-sumi-50">
+        </div>
+
+        <div>
+          <label for="senha" class="block text-xs font-bold text-sumi-500 uppercase mb-1 tracking-wide">Senha</label>
+          <input id="senha" name="senha" type="password" [(ngModel)]="senha" autocomplete="current-password"
+            [disabled]="carregando"
+            class="w-full p-2.5 border border-sumi-200 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-carmesim-500 focus:border-carmesim-500 disabled:bg-sumi-50">
+        </div>
+
+        @if (erro) {
+        <p class="text-sm text-carmesim-700 bg-carmesim-50 border border-carmesim-200 rounded-lg px-3 py-2 flex items-center gap-2"
+          role="alert">
+          <lucide-icon name="shield-alert" class="w-4 h-4 shrink-0"></lucide-icon>
+          {{ erro }}
+        </p>
+        }
+
+        <button type="submit" [disabled]="carregando"
+          class="w-full bg-carmesim-600 hover:bg-carmesim-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 tracking-wide">
+          <lucide-icon name="log-in" class="w-4 h-4"></lucide-icon>
+          @if (!carregando) {
+          <span>Entrar</span>
+          } @else {
+          <span>Autenticando...</span>
+          }
+        </button>
+
+      </form>
+    </div>
+
+    <p class="text-center text-xs text-sumi-400 mt-6 flex items-center justify-center gap-1.5">
+      <lucide-icon name="shield-check" class="w-3.5 h-3.5"></lucide-icon>
+      Acesso permitido apenas à equipe autorizada.
+    </p>
+
+  </div>
+
+</div>

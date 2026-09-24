@@ -1,0 +1,74 @@
+# =============================================================================
+# .gitignore — Yōkai no Ki SGI (monorepo: frontend Angular + backend FastAPI)
+# =============================================================================
+
+# --- Segredos e ambiente (NUNCA versionar) ---
+.env
+*.env
+!*.env.example
+backend/.env
+frontend/.env
+
+# --- Banco de dados local (SQLite de desenvolvimento) ---
+*.db
+*.sqlite
+*.sqlite3
+backend/yokai.db
+
+# =============================================================================
+# Front-end (Angular / Node)
+# =============================================================================
+frontend/node_modules/
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+frontend/.angular/
+frontend/.angular/cache/
+npm-debug.log*
+yarn-error.log*
+frontend/coverage/
+
+# =============================================================================
+# Back-end (Python / FastAPI)
+# =============================================================================
+backend/venv/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+backend/.pytest_cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# --- Alembic: manter as migrations versionadas, ignorar só o tmp ---
+_alembic_tmp.db
+
+# =============================================================================
+# IDEs e editores
+# =============================================================================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# =============================================================================
+# Sistema operacional
+# =============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# Artefatos temporários / logs
+# =============================================================================
+*.log
+_*.log
+_*.py
+
+# --- Resíduo da reorganização (remover manualmente após liberar o handle) ---
+YNK-App/

@@ -1,0 +1,14 @@
+# Não copiar dependências e artefatos para o contexto de build do front.
+node_modules/
+dist/
+.angular/
+.git/
+.github/
+.vscode/
+
+# Back-end (tem seu próprio contexto de build em YnkBD/)
+YnkBD/
+
+# Segredos e logs
+*.log
+.env

@@ -1,0 +1,14 @@
+# Ambientes virtuais e caches (não vão para a imagem)
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Banco local e segredos — nunca copiar para a imagem
+*.db
+yokai.db
+.env
+
+# Artefatos diversos
+*.log

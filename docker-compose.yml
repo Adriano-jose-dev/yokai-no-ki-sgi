@@ -1,0 +1,61 @@
+# Orquestração completa do SGI-YKR: PostgreSQL + API FastAPI + front Angular/Nginx.
+#
+# Subir tudo com um único comando:
+#   docker compose up --build
+#
+# Acessos após subir:
+#   - Front:  http://localhost:8080
+#   - API:    http://localhost:8000  (docs em http://localhost:8000/docs)
+#
+# Variáveis sensíveis têm valores de exemplo aqui para desenvolvimento. Em
+# produção, defina-as via arquivo .env (mesma pasta) ou no ambiente da
+# hospedagem — NÃO use estes valores em produção.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-yokai_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yokai_dev_pwd}
+      POSTGRES_DB: ${POSTGRES_DB:-yokai}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-yokai_app} -d ${POSTGRES_DB:-yokai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      # Conexão com o serviço 'db' (rede interna do compose).
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-yokai_app}:${POSTGRES_PASSWORD:-yokai_dev_pwd}@db:5432/${POSTGRES_DB:-yokai}
+      # >>> Em produção, gere um segredo forte (openssl rand -hex 32). <<<
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-inseguro-trocar-em-producao}
+      JWT_EXPIRE_MIN: ${JWT_EXPIRE_MIN:-60}
+      # O front é servido pelo Nginx e chama a API via proxy /api (mesma origem),
+      # mas mantemos a origem do Nginx no CORS por segurança.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

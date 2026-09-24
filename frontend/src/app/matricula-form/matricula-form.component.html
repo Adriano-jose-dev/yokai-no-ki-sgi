@@ -1,0 +1,258 @@
+<div class="bg-white rounded-xl shadow-lg border border-sumi-200 overflow-hidden w-full max-w-4xl mx-auto">
+  <div class="p-6 border-b border-sumi-100 flex justify-between items-center bg-sumi-50">
+    <div>
+      <h2 class="text-2xl font-black text-sumi-800">Matrícula</h2>
+      <p class="text-sm text-sumi-500">Selecione o tipo de cadastro para começar.</p>
+    </div>
+    <button (click)="matriculaConcluida.emit()" class="text-sumi-400 hover:text-carmesim-600 transition-colors"><lucide-icon name="x" class="w-4 h-4"></lucide-icon></button>
+  </div>
+
+  <div class="p-6">
+    <div class="grid grid-cols-2 gap-4 mb-8">
+      <button (click)="tipoCadastro = 'experimental'" [class.bg-sumi-700]="tipoCadastro === 'experimental'"
+        [class.text-white]="tipoCadastro === 'experimental'" [class.bg-sumi-100]="tipoCadastro !== 'experimental'"
+        [class.text-sumi-600]="tipoCadastro !== 'experimental'"
+        class="py-3 px-4 rounded-lg font-bold border transition-colors shadow-sm text-center">Aula Experimental</button>
+      <button (click)="tipoCadastro = 'completa'" [class.bg-sumi-700]="tipoCadastro === 'completa'"
+        [class.text-white]="tipoCadastro === 'completa'" [class.bg-sumi-100]="tipoCadastro !== 'completa'"
+        [class.text-sumi-600]="tipoCadastro !== 'completa'"
+        class="py-3 px-4 rounded-lg font-bold border transition-colors shadow-sm text-center">Matrícula Oficial</button>
+    </div>
+
+    <!-- SEÇÃO 1: DADOS PESSOAIS E FILIAÇÃO -->
+    <div class="border border-sumi-200 rounded-lg mb-4 overflow-hidden">
+      <button type="button" (click)="toggleAba(1)"
+        class="w-full flex items-center justify-between p-4 bg-sumi-50 text-left">
+        <span class="font-bold text-sumi-700">1. Dados Pessoais & Cadastrais</span>
+        <span class="text-sumi-400 transition-transform" [class.rotate-180]="abaAtiva === 1"></span>
+      </button>
+
+      @if (abaAtiva === 1) {
+      <div class="p-6 bg-white space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-1">Nome Completo *</label>
+            <input type="text" [(ngModel)]="aluno.nome"
+              class="w-full p-2.5 border border-sumi-300 rounded focus:ring-1 focus:ring-sumi-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-1">Data de Nascimento</label>
+            <input type="date" [(ngModel)]="aluno.data_nascimento" (change)="calcularIdade($event)"
+              class="w-full p-2.5 border border-sumi-300 rounded focus:ring-1 focus:ring-sumi-500 outline-none">
+          </div>
+        </div>
+
+        @if (tipoCadastro === 'completa') {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block text-xs font-bold text-sumi-500 mb-1">Nacionalidade</label><input type="text"
+              [(ngModel)]="aluno.nacionalidade" class="w-full p-2.5 border rounded"></div>
+          <div><label class="block text-xs font-bold text-sumi-500 mb-1">Naturalidade</label><input type="text"
+              [(ngModel)]="aluno.naturalidade" class="w-full p-2.5 border rounded"></div>
+        </div>
+        }
+
+        @if (tipoCadastro === 'completa') {
+        <div>
+          <label class="block text-xs font-bold text-sumi-500 mb-1">Endereço Residencial</label>
+          <textarea [(ngModel)]="aluno.endereco" rows="2"
+            class="w-full p-2.5 border border-sumi-300 rounded focus:ring-1 focus:ring-sumi-500 outline-none"></textarea>
+        </div>
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block text-xs font-bold text-sumi-500 mb-1">WhatsApp</label><input type="text"
+              [(ngModel)]="aluno.whatsapp" class="w-full p-2.5 border rounded"></div>
+          @if (tipoCadastro === 'completa') {
+          <div><label
+              class="block text-xs font-bold text-sumi-500 mb-1">E-mail</label><input type="email"
+              [(ngModel)]="aluno.email" class="w-full p-2.5 border rounded"></div>
+          }
+        </div>
+
+        <!-- CONTATO DE EMERGÊNCIA (VISÍVEL PARA AMBOS AGORA) -->
+        <div class="p-4 rounded border mt-4 bg-sumi-50 border-sumi-200">
+          <p class="text-xs font-bold uppercase tracking-wider mb-3 text-sumi-500">Contato de Emergência / Responsável
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Nome do Contato</label><input
+                type="text" [(ngModel)]="aluno.contato_emergencia_nome" class="w-full p-2 border rounded"></div>
+            <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Parentesco</label><input type="text"
+                [(ngModel)]="aluno.contato_emergencia_parentesco" class="w-full p-2 border rounded"></div>
+            <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Telefone</label><input type="text"
+                [(ngModel)]="aluno.contato_emergencia_telefone" class="w-full p-2 border rounded"></div>
+          </div>
+        </div>
+
+        <!-- FILIAÇÃO (VISÍVEL PARA AMBOS AGORA) -->
+        <div class="p-4 rounded border mt-4"
+          [ngClass]="isMenorDeIdade ? 'bg-carmesim-50 border-carmesim-200' : 'bg-sumi-50 border-sumi-200'">
+          <p class="text-xs font-bold uppercase tracking-wider mb-3 text-sumi-500">Filiação @if (isMenorDeIdade) {<span
+              class="text-carmesim-600 font-black">(OBRIGATÓRIO - MENOR)</span>}</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Nome do Pai</label><input type="text"
+                [(ngModel)]="aluno.nome_pai" class="w-full p-2 border rounded"></div>
+            <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Nome da Mãe</label><input type="text"
+                [(ngModel)]="aluno.nome_mae" class="w-full p-2 border rounded"></div>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- SEÇÃO 2: SEGURANÇA MÉDICA E LEGAL -->
+    @if (tipoCadastro === 'completa') {
+    <div class="border border-sumi-200 rounded-lg mb-4 overflow-hidden">
+      <button type="button" (click)="toggleAba(2)"
+        class="w-full flex items-center justify-between p-4 bg-sumi-50 text-left">
+        <span class="font-bold text-sumi-700">2. Segurança Médica e Legal</span>
+        <span class="text-sumi-400 transition-transform" [class.rotate-180]="abaAtiva === 2"></span>
+      </button>
+
+      @if (abaAtiva === 2) {
+      <div class="p-6 bg-white space-y-6">
+        <div class="bg-carmesim-50 p-5 rounded-lg border border-carmesim-100">
+          <h4 class="text-sm font-bold text-carmesim-800 mb-4 border-b border-carmesim-200 pb-2">Questionário de Anamnese</h4>
+          <div class="space-y-3">
+            @for (pergunta of perguntasMedicas; track pergunta.chave) {
+            <div
+              class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white p-3 rounded border border-sumi-200 shadow-sm">
+              <span class="text-sm text-sumi-700 font-medium">{{ pergunta.label }}</span>
+              <div class="flex gap-4 mt-2 sm:mt-0">
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input type="radio" [name]="pergunta.chave" [(ngModel)]="aluno.respostas_medicas[pergunta.chave]"
+                    value="sim" class="w-4 h-4 text-carmesim-600">
+                  <span class="text-sm text-sumi-600 font-bold">Sim</span>
+                </label>
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input type="radio" [name]="pergunta.chave" [(ngModel)]="aluno.respostas_medicas[pergunta.chave]"
+                    value="nao" class="w-4 h-4 text-sumi-600">
+                  <span class="text-sm text-sumi-600 font-bold">Não</span>
+                </label>
+              </div>
+            </div>
+            }
+            @if (temAlgumaRespostaSim()) {
+            <div class="mt-4">
+              <label class="block text-xs font-bold text-carmesim-800 mb-1">Por favor, detalhe as condições assinaladas
+                acima:</label>
+              <textarea [(ngModel)]="aluno.detalhamento_medico" rows="3"
+                class="w-full p-3 border border-carmesim-300 rounded focus:ring-1 focus:ring-carmesim-500 outline-none"></textarea>
+            </div>
+            }
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-bold text-sumi-700 mb-3 border-b pb-2">Perfil Marcial</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-sumi-500 mb-1">Trilha de Treinamento</label>
+              <select [(ngModel)]="aluno.trilha_marcial" class="w-full p-2.5 border rounded">
+                <option value="dojo">Modo Dojo</option>
+                <option value="legado">Modo Legado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-sumi-500 mb-1">Equipamento Próprio</label>
+              <select [(ngModel)]="aluno.equipamento_proprio" class="w-full p-2.5 border rounded">
+                <option [ngValue]="false">Não (Usa do Dojo)</option>
+                <option [ngValue]="true">Sim</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block text-xs font-bold text-sumi-500 mb-1">Histórico Prévio (Outras artes marciais)</label>
+            <textarea [(ngModel)]="aluno.historico_marcial" rows="2" class="w-full p-2.5 border rounded"></textarea>
+          </div>
+        </div>
+
+        <div class="bg-sumi-50 p-4 rounded-lg border border-sumi-200">
+          <h4 class="text-sm font-bold text-sumi-700 mb-3">Autorizações Legais</h4>
+          <label class="flex items-center gap-3 mb-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="aluno.termo_risco_assinado" class="w-5 h-5 text-emerald-600 rounded">
+            <span class="text-sm text-sumi-700">Aluno (ou responsável) assinou o Termo de Ciência de Risco.</span>
+          </label>
+          <div class="flex items-center gap-4 mt-2">
+            <span class="text-sm font-bold text-sumi-600">Uso de Imagem (Fotos/Vídeos):</span>
+            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" [(ngModel)]="aluno.termo_imagem"
+                value="concordo" class="w-4 h-4 text-emerald-600"> <span
+                class="text-sm text-sumi-600">Autorizado</span></label>
+            <label class="flex items-center gap-1 cursor-pointer"><input type="radio" [(ngModel)]="aluno.termo_imagem"
+                value="nao_concordo" class="w-4 h-4 text-carmesim-600"> <span class="text-sm text-sumi-600">Não
+                Autorizado</span></label>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- SEÇÃO 3: FECHAMENTO FINANCEIRO -->
+    @if (tipoCadastro === 'completa') {
+    <div class="border border-sumi-200 rounded-lg mb-6 overflow-hidden">
+      <button type="button" (click)="toggleAba(3)"
+        class="w-full flex items-center justify-between p-4 bg-sumi-50 text-left">
+        <span class="font-bold text-sumi-700">3. Fechamento Financeiro</span>
+        <span class="text-sumi-400 transition-transform" [class.rotate-180]="abaAtiva === 3"></span>
+      </button>
+
+      @if (abaAtiva === 3) {
+      <div class="p-6 bg-white space-y-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-1">Taxa de Admissão</label>
+            <select [(ngModel)]="aluno.taxa_admissao" class="w-full p-2.5 border rounded">
+              <option value="padrao">Padrão (R$ 50,00)</option>
+              <option value="shokubai">Com Kit Shokubai (R$ 70,00)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-1">Plano de Treino</label>
+            <select [(ngModel)]="aluno.plano" class="w-full p-2.5 border rounded">
+              <option value="Horas Livres">Horas Livres</option>
+              <option value="Mensalidade">Mensalidade</option>
+              <option value="Intensivão">Intensivão</option>
+            </select>
+          </div>
+
+          @if (aluno.plano === 'Mensalidade') {
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-1">Vencimento Fixo</label>
+            <input type="number" min="1" max="31" [(ngModel)]="aluno.dia_vencimento"
+              class="w-full p-2.5 border rounded">
+          </div>
+          }
+
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-1">Valor Base Acordo (R$)</label>
+            <input type="number" [(ngModel)]="aluno.valor_base_contrato" class="w-full p-2.5 border rounded font-mono">
+          </div>
+        </div>
+
+        <div class="bg-emerald-50 p-4 rounded border border-emerald-100 mt-4">
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-xs font-bold text-emerald-800">Acordo Contratual Comercial (Opcional):</label>
+            <button (click)="toggleAcordo()" class="text-[10px] font-bold uppercase px-2 py-1 rounded transition-colors"
+              [class.bg-emerald-600]="acordoEditavel" [class.text-white]="acordoEditavel"
+              [class.bg-sumi-300]="!acordoEditavel" [class.text-sumi-700]="!acordoEditavel">
+              {{ acordoEditavel ? 'Salvar Acordo' : 'Editar Acordo' }}
+            </button>
+          </div>
+          <textarea [(ngModel)]="aluno.acordo_contratual" [disabled]="!acordoEditavel"
+            [class.bg-sumi-100]="!acordoEditavel" rows="2"
+            class="w-full p-2 border border-emerald-200 rounded text-sm outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-75 disabled:cursor-not-allowed"
+            placeholder="Ex: Aluno treina 2h por semana, toda terça. Mensalidade fechada em R$ 160,00."></textarea>
+        </div>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- BOTÃO FINAL -->
+    <button (click)="efetivarMatricula()"
+      class="w-full bg-sumi-700 hover:bg-sumi-800 text-white text-lg font-bold py-4 rounded-lg shadow-md transition-colors mt-2">
+      Efetivar Matrícula
+    </button>
+  </div>
+</div>

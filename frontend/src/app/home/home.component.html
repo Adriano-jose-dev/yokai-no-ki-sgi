@@ -1,0 +1,67 @@
+<div class="min-h-screen bg-sumi-50 font-sans">
+
+  <header class="bg-sumi-950 shadow-lg border-b-4 border-carmesim-600">
+    <div
+      class="max-w-screen-2xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+
+      <div class="flex items-center gap-3">
+        <!-- Caixa inteligente do logo no cabeçalho: object-contain + limites de
+             max-h/max-w garantem que logos de qualquer proporção não distorçam. -->
+        <div class="flex items-center justify-center h-12 max-w-[12rem]">
+          <img src="assets/logo YnK 1.jpeg" alt="Yōkai no Ki Ryūha"
+            class="max-h-12 max-w-full w-auto h-auto object-contain">
+        </div>
+        <h1 class="font-display text-xl font-bold text-ouro-300 tracking-[0.2em] uppercase hidden sm:block">
+          Yōkai no Ki Ryūha
+        </h1>
+      </div>
+
+      <nav class="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
+        <button (click)="abaAtual = 'tatame'"
+          [ngClass]="abaAtual === 'tatame' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>
+          Modo Tatame
+        </button>
+
+        <button (click)="abaAtual = 'presenca'"
+          [ngClass]="abaAtual === 'presenca' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="clipboard-list" class="w-4 h-4"></lucide-icon>
+          Presença
+        </button>
+
+        <button (click)="abaAtual = 'secretaria'"
+          [ngClass]="abaAtual === 'secretaria' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
+          Secretaria
+        </button>
+
+        <button (click)="sair()"
+          class="bg-sumi-800 hover:bg-carmesim-700 text-sumi-200 hover:text-white font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 tracking-wide"
+          title="Encerrar sessão">
+          <lucide-icon name="door-open" class="w-4 h-4"></lucide-icon>
+          Sair
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-screen-2xl mx-auto">
+
+    @if (abaAtual === 'tatame') {
+    <app-daily-panel></app-daily-panel>
+    }
+
+    @if (abaAtual === 'presenca') {
+    <app-presenca-panel></app-presenca-panel>
+    }
+
+    @if (abaAtual === 'secretaria') {
+    <app-admin-detail></app-admin-detail>
+    }
+
+  </main>
+
+</div>

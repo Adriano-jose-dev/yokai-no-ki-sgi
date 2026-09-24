@@ -1,0 +1,31 @@
+# Runtime
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+SQLAlchemy==2.0.29
+pydantic==2.6.4
+python-dotenv==1.2.3
+
+# Autenticação (JWT + hash de senha)
+# python-multipart: exigido pelo FastAPI para ler o formulário OAuth2
+# (application/x-www-form-urlencoded) do endpoint POST /auth/login.
+python-multipart==0.0.9
+passlib[bcrypt]==1.7.4
+# bcrypt fixado em 4.0.1: versões >=4.1 removeram bcrypt.__about__.__version__,
+# que o passlib 1.7.4 ainda lê, causando warning/erro de detecção do backend.
+bcrypt==4.0.1
+PyJWT==2.8.0
+
+# Migrations de esquema
+alembic==1.13.1
+
+# Agendador do job diário da trava de inadimplência (Tarefa 13 / Requisito 10)
+APScheduler==3.10.4
+
+# Driver PostgreSQL (produção). Em dev com SQLite não é usado, mas é exigido
+# quando DATABASE_URL aponta para postgresql+psycopg2://... Mantido no runtime
+# para que o deploy funcione sem passos manuais extras.
+psycopg2-binary==2.9.9
+
+# --- Testes (não necessárias em produção) ---
+pytest==8.1.1
+httpx==0.27.0
