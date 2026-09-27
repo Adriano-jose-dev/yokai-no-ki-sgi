@@ -1,7 +1,7 @@
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { LucideAngularModule, LogIn, LogOut, Users, ClipboardList, Swords, DoorOpen, Wallet, Search, UserPlus, ShieldCheck, ShieldAlert, Play, Square, Clock, Pencil, Save, X, TrendingUp, CalendarClock, Check, AlertTriangle, Target, Award, StickyNote, Menu, Info } from 'lucide-angular';
+import { LucideAngularModule, LogIn, LogOut, Users, ClipboardList, Swords, DoorOpen, Wallet, Search, UserPlus, ShieldCheck, ShieldAlert, Play, Square, Clock, Pencil, Save, X, TrendingUp, CalendarClock, Check, AlertTriangle, Target, Award, StickyNote, Menu, Info, Pause, UserX, Download, RotateCcw, Archive } from 'lucide-angular';
 import { importProvidersFrom } from '@angular/core';
 
 import { routes } from './app.routes';
@@ -40,6 +40,11 @@ export const appConfig: ApplicationConfig = {
         StickyNote,
         Menu,
         Info,
+        Pause,
+        UserX,
+        Download,
+        RotateCcw,
+        Archive,
       })
     ),
   ],

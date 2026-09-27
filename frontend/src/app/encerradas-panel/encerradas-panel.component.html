@@ -1,0 +1,74 @@
+<div class="p-6 text-left bg-sumi-50 min-h-screen">
+  <div class="flex justify-between items-center mb-6 border-b pb-4 border-sumi-200">
+    <h2 class="font-display text-2xl font-bold text-sumi-900 flex items-center gap-2">
+      <lucide-icon name="archive" class="w-6 h-6 text-carmesim-600"></lucide-icon>
+      Matrículas Encerradas
+    </h2>
+    <button (click)="carregar()"
+      class="bg-sumi-800 hover:bg-sumi-900 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-colors flex items-center gap-2">
+      <lucide-icon name="rotate-ccw" class="w-4 h-4"></lucide-icon>
+      Atualizar
+    </button>
+  </div>
+
+  <p class="text-sm text-sumi-500 mb-4">
+    Registros na janela de retenção de 30 dias. O dossiê fica disponível para
+    download; o encerramento pode ser revogado até o expurgo definitivo.
+  </p>
+
+  <div class="bg-white rounded-xl shadow-sm border border-sumi-200 overflow-hidden">
+    <table class="w-full text-left text-sm text-sumi-600">
+      <thead class="bg-sumi-100 text-sumi-700 font-bold uppercase border-b border-sumi-200">
+        <tr>
+          <th class="py-3 px-4">Aluno</th>
+          <th class="py-3 px-4">Encerrado em</th>
+          <th class="py-3 px-4">Encerrado por</th>
+          <th class="py-3 px-4 text-center">Dias restantes</th>
+          <th class="py-3 px-4 text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of encerradas; track item.id_matricula) {
+        <tr class="border-b border-sumi-100 hover:bg-sumi-50 transition-colors">
+          <td class="py-4 px-4">
+            <strong class="text-sumi-900 text-base block">{{ item.nome }}</strong>
+            <span class="text-xs text-sumi-400 font-mono">#{{ item.id_matricula }}</span>
+          </td>
+          <td class="py-4 px-4">{{ item.data_encerramento }}</td>
+          <td class="py-4 px-4">{{ item.encerrado_por || '—' }}</td>
+          <td class="py-4 px-4 text-center">
+            <span
+              [ngClass]="item.dias_restantes <= 5 ? 'bg-carmesim-100 text-carmesim-800 border-carmesim-300' : 'bg-ouro-100 text-ouro-800 border-ouro-300'"
+              class="text-xs font-black px-2 py-0.5 rounded border">
+              {{ item.dias_restantes }} dia(s)
+            </span>
+          </td>
+          <td class="py-4 px-4">
+            <div class="flex justify-center gap-2">
+              <button (click)="baixarDossie(item)"
+                class="bg-sumi-800 hover:bg-sumi-900 text-white text-xs font-bold py-2 px-3 rounded shadow-sm transition-colors flex items-center gap-1">
+                <lucide-icon name="download" class="w-3.5 h-3.5"></lucide-icon>
+                Baixar
+              </button>
+              <button (click)="revogar(item)"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded shadow-sm transition-colors flex items-center gap-1">
+                <lucide-icon name="rotate-ccw" class="w-3.5 h-3.5"></lucide-icon>
+                Revogar
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (!carregando && encerradas.length === 0) {
+    <div class="p-8 text-center text-sumi-400 italic">
+      Nenhuma matrícula encerrada no momento.
+    </div>
+    }
+    @if (carregando) {
+    <div class="p-8 text-center text-sumi-400 italic">Carregando...</div>
+    }
+  </div>
+</div>

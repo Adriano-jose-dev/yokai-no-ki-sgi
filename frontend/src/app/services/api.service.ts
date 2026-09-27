@@ -28,6 +28,11 @@ export class ApiService {
     return this.http.get<T>(this.url(path));
   }
 
+  /** GET que devolve um arquivo binário (ex.: PDF do dossiê). */
+  getBlob(path: string): Observable<Blob> {
+    return this.http.get(this.url(path), { responseType: 'blob' });
+  }
+
   post<T = any>(path: string, body: any = {}): Observable<T> {
     return this.http.post<T>(this.url(path), body);
   }

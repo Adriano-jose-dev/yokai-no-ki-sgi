@@ -27,7 +27,11 @@ router = APIRouter(tags=["Presença"], dependencies=[Depends(requer_papel("admin
     ),
 )
 def listar_chamada_diaria(data_consulta: date, db: Session = Depends(get_db)):
-    alunos = db.query(Aluno).filter(Aluno.status_atividade != "Inativo").all()
+    alunos = (
+        db.query(Aluno)
+        .filter(Aluno.status_atividade.notin_(["Inativo", "Encerrado"]))
+        .all()
+    )
     resultado = []
     for a in alunos:
         p = (

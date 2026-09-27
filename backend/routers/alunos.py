@@ -48,7 +48,9 @@ def listar_todos_alunos(db: Session = Depends(get_db)):
             "status_atividade": a.status_atividade,
             "modo_treino": a.modo_treino,
         }
-        for a in db.query(Aluno).all()
+        # Alunos "Encerrado" não aparecem na lista geral — vivem na aba
+        # "Matrículas encerradas" até o expurgo.
+        for a in db.query(Aluno).filter(Aluno.status_atividade != "Encerrado").all()
     ]
 
 

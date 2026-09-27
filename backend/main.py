@@ -19,7 +19,15 @@ import config
 
 # --- Infra e domínio (reexportados para compatibilidade) ---
 from database import DATABASE_URL, engine, SessionLocal, Base, get_db  # noqa: F401
-from models import Aluno, Contrato, Sessao, Pagamento, Presenca, Usuario  # noqa: F401
+from models import (  # noqa: F401
+    Aluno,
+    Contrato,
+    Sessao,
+    Pagamento,
+    Presenca,
+    Usuario,
+    EncerramentoMatricula,
+)
 from schemas import (  # noqa: F401
     SessaoRequest,
     StopSessaoRequest,
@@ -41,7 +49,7 @@ from schemas import (  # noqa: F401
 from business.helpers import formata_hora, encerrar_sessao_aberta  # noqa: F401
 from business.trava import avaliar_trava_inadimplencia  # noqa: F401
 
-from routers import alunos, tatame, presenca, pagamentos, auth
+from routers import alunos, tatame, presenca, pagamentos, auth, encerramento
 
 # Evolução do esquema (Requisito 9.4): em PRODUÇÃO o esquema é gerido por
 # migrations do Alembic (`alembic upgrade head`), NÃO por create_all. Mantemos o
@@ -138,6 +146,14 @@ TAGS_METADATA = [
             "depois sessões pendentes em ordem cronológica."
         ),
     },
+    {
+        "name": "Encerramento de Matrícula",
+        "description": (
+            "Encerramento definitivo de vínculo: gera dossiê PDF, retém por 30 "
+            "dias (com download e revogação) e expurga o registro do aluno ao "
+            "fim da janela (Hard Delete / LGPD)."
+        ),
+    },
 ]
 
 app = FastAPI(
@@ -163,3 +179,4 @@ app.include_router(alunos.router)
 app.include_router(tatame.router)
 app.include_router(presenca.router)
 app.include_router(pagamentos.router)
+app.include_router(encerramento.router)

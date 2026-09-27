@@ -26,6 +26,10 @@ APScheduler==3.10.4
 # para que o deploy funcione sem passos manuais extras.
 psycopg2-binary==2.9.9
 
+# Geração do dossiê PDF no encerramento de matrícula. Puro-Python (sem libs de
+# sistema), o que mantém o Dockerfile simples.
+reportlab==4.1.0
+
 # --- Testes (não necessárias em produção) ---
 pytest==8.1.1
 httpx==0.27.0

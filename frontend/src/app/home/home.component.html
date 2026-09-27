@@ -38,6 +38,13 @@
           Secretaria
         </button>
 
+        <button (click)="abaAtual = 'encerradas'"
+          [ngClass]="abaAtual === 'encerradas' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="archive" class="w-4 h-4"></lucide-icon>
+          Encerradas
+        </button>
+
         <button (click)="sair()"
           class="bg-sumi-800 hover:bg-carmesim-700 text-sumi-200 hover:text-white font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 tracking-wide"
           title="Encerrar sessão">
@@ -60,6 +67,10 @@
 
     @if (abaAtual === 'secretaria') {
     <app-admin-detail></app-admin-detail>
+    }
+
+    @if (abaAtual === 'encerradas') {
+    <app-encerradas-panel></app-encerradas-panel>
     }
 
   </main>

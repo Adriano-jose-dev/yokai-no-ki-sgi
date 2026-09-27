@@ -30,7 +30,14 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from database import SessionLocal
-from models import Aluno, Contrato
+from models import (
+    Aluno,
+    Contrato,
+    Sessao,
+    Pagamento,
+    Presenca,
+    EncerramentoMatricula,
+)
 from business.trava import avaliar_trava_inadimplencia
 
 logger = logging.getLogger("ynk.scheduler")
@@ -40,8 +47,9 @@ logger = logging.getLogger("ynk.scheduler")
 _HORA_JOB = int(os.getenv("TRAVA_JOB_HORA", "0"))
 _MINUTO_JOB = int(os.getenv("TRAVA_JOB_MINUTO", "0"))
 
-# ID fixo do job: evita duplicação caso o startup rode mais de uma vez.
+# IDs fixos dos jobs: evitam duplicação caso o startup rode mais de uma vez.
 _JOB_ID = "trava_inadimplencia_diaria"
+_JOB_EXPURGO_ID = "expurgo_matriculas_encerradas"
 
 # Instância única do agendador neste processo.
 _scheduler: BackgroundScheduler | None = None
@@ -99,6 +107,68 @@ def varrer_travas_inadimplencia() -> int:
         db.close()
 
 
+def varrer_expurgo_matriculas() -> int:
+    """Expurga (Hard Delete) matrículas encerradas com a janela de 30 dias vencida.
+
+    Para cada registro de `EncerramentoMatricula` com `data_expurgo <= hoje`,
+    remove definitivamente o registro do aluno e os dados diretamente ligados a
+    ele (contrato, sessões, pagamentos, presenças), além do próprio registro de
+    encerramento (que guarda o dossiê PDF).
+
+    NOTA (provisória, até a divisão de setores planejada): hoje esses dados
+    estão fisicamente ligados ao aluno por foreign key, então o expurgo os
+    remove junto para não violar integridade referencial. Quando os setores
+    (financeiro/secretaria) forem separados, este job passará a *anonimizar* o
+    vínculo em vez de apagar o registro do setor — a decisão foi adiada de
+    propósito para não construir sobre um modelo que ainda vai mudar.
+
+    Roda fora do ciclo de request (sessão própria). Retorna quantas matrículas
+    foram expurgadas.
+    """
+    db = SessionLocal()
+    try:
+        hoje = date.today()
+        vencidos = (
+            db.query(EncerramentoMatricula)
+            .filter(EncerramentoMatricula.data_expurgo <= hoje)
+            .all()
+        )
+
+        expurgados = 0
+        for enc in vencidos:
+            id_aluno = enc.id_aluno
+            # Remove dados dependentes do aluno (ver nota sobre setores).
+            db.query(Sessao).filter(Sessao.id_aluno == id_aluno).delete(
+                synchronize_session=False
+            )
+            db.query(Pagamento).filter(Pagamento.id_aluno == id_aluno).delete(
+                synchronize_session=False
+            )
+            db.query(Presenca).filter(Presenca.id_aluno == id_aluno).delete(
+                synchronize_session=False
+            )
+            db.query(Contrato).filter(Contrato.id_aluno == id_aluno).delete(
+                synchronize_session=False
+            )
+            # Remove o registro de encerramento (inclui o dossiê PDF).
+            db.delete(enc)
+            # Por fim, o próprio aluno.
+            db.query(Aluno).filter(Aluno.id_matricula == id_aluno).delete(
+                synchronize_session=False
+            )
+            expurgados += 1
+
+        db.commit()
+        logger.info("Expurgo de matrículas: %d registros eliminados.", expurgados)
+        return expurgados
+    except Exception:  # noqa: BLE001 — job de background: nunca deve derrubar a app.
+        db.rollback()
+        logger.exception("Falha ao executar o expurgo de matrículas encerradas.")
+        return 0
+    finally:
+        db.close()
+
+
 def iniciar_agendador() -> None:
     """Sobe o BackgroundScheduler e agenda a varredura diária de madrugada.
 
@@ -126,10 +196,21 @@ def iniciar_agendador() -> None:
             coalesce=True,
             max_instances=1,
         )
+        # Job de expurgo das matrículas encerradas (Hard Delete após 30 dias).
+        scheduler.add_job(
+            varrer_expurgo_matriculas,
+            trigger=CronTrigger(hour=_HORA_JOB, minute=_MINUTO_JOB),
+            id=_JOB_EXPURGO_ID,
+            name="Expurgo de matrículas encerradas (Hard Delete pós-retenção)",
+            replace_existing=True,
+            misfire_grace_time=3600,
+            coalesce=True,
+            max_instances=1,
+        )
         scheduler.start()
         _scheduler = scheduler
         logger.info(
-            "Agendador da trava iniciado. Job diário às %02d:%02d "
+            "Agendador iniciado. Jobs diários (trava + expurgo) às %02d:%02d "
             "(America/Sao_Paulo).",
             _HORA_JOB,
             _MINUTO_JOB,

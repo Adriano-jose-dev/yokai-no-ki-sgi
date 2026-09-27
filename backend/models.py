@@ -16,6 +16,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    LargeBinary,
 )
 
 from database import Base
@@ -104,3 +105,39 @@ class Usuario(Base):
     senha_hash = Column(String, nullable=False)
     role = Column(String, default="admin", nullable=False)
     ativo = Column(Boolean, default=True, nullable=False)
+
+
+class EncerramentoMatricula(Base):
+    """Registro de **encerramento definitivo** de matrícula (fim de vínculo).
+
+    Diferente da *suspensão* (soft, reversível, via `status_atividade`), o
+    encerramento inicia uma janela de retenção de 30 dias durante a qual:
+    - o dossiê PDF completo do aluno fica disponível para download;
+    - a operação pode ser **revogada** por um admin, restaurando o aluno ao
+      `estado_anterior`;
+    - ao fim da janela, um job do APScheduler faz o **Hard Delete** do registro
+      do aluno (conformidade com a LGPD: dados pessoais não são retidos sem
+      vínculo ativo).
+
+    O PDF é guardado aqui (`dossie_pdf`) para que o expurgo apague o registro do
+    aluno e o próprio documento de uma vez só, sem arquivos órfãos no disco.
+
+    Relação 1:1 com `Aluno` — enquanto existe este registro, o aluno está
+    "encerrado" (status_atividade = 'Encerrado') e some das telas do dia a dia.
+    """
+
+    __tablename__ = "encerramentos_matricula"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    id_aluno = Column(
+        String, ForeignKey("alunos.id_matricula"), unique=True, index=True
+    )
+    # Status em que o aluno estava antes do encerramento (p/ revogação).
+    estado_anterior = Column(String, nullable=False)
+    data_encerramento = Column(DateTime, default=datetime.now, nullable=False)
+    # Data a partir da qual o expurgo (Hard Delete) pode ocorrer.
+    data_expurgo = Column(Date, nullable=False)
+    # Dossiê PDF completo, gerado no ato do encerramento.
+    dossie_pdf = Column(LargeBinary, nullable=True)
+    dossie_nome = Column(String, nullable=True)
+    # Quem encerrou (username do admin), para auditoria.
+    encerrado_por = Column(String, nullable=True)

@@ -23,6 +23,10 @@ export class AdminDetailComponent implements OnInit {
   metodoPagamento: string = 'Pix';
   novaGraduacao: string = '';
 
+  // Modal de confirmação do ENCERRAMENTO definitivo (Hard Delete agendado).
+  exibirModalEncerramento: boolean = false;
+  encerrando: boolean = false;
+
   abaAtivaAluno: 'resumo' | 'ficha' | 'financeiro' | 'frequencia' = 'resumo';
   editandoFicha: boolean = false;
   editandoContrato: boolean = false;
@@ -218,6 +222,58 @@ export class AdminDetailComponent implements OnInit {
         }
       });
     }
+  }
+
+  // --- Ciclo de vida da matrícula: Suspensão x Encerramento ---
+
+  /** Suspensão (soft/reversível): mantém o vínculo, tira das telas do dia a dia. */
+  suspenderMatricula(): void {
+    if (!this.alunoSelecionadoId) return;
+    if (!confirm('Suspender este aluno? Ele sai das telas do dia a dia, mas o vínculo e o histórico são mantidos (reversível).')) {
+      return;
+    }
+    this.api.put(`/alunos/${this.alunoSelecionadoId}/desativar`, {}).subscribe({
+      next: () => {
+        alert('Aluno suspenso. Você pode reativá-lo quando quiser.');
+        this.carregarListaAlunos();
+        this.aluno = null;
+        this.alunoSelecionadoId = '';
+      },
+      error: () => alert('Não foi possível suspender o aluno.')
+    });
+  }
+
+  /** Abre o modal de confirmação do encerramento definitivo. */
+  abrirModalEncerrar(): void {
+    if (!this.alunoSelecionadoId) return;
+    this.exibirModalEncerramento = true;
+  }
+
+  cancelarEncerramento(): void {
+    this.exibirModalEncerramento = false;
+  }
+
+  /** Encerramento definitivo: gera o dossiê, agenda o expurgo em 30 dias. */
+  confirmarEncerramento(): void {
+    if (!this.alunoSelecionadoId || this.encerrando) return;
+    this.encerrando = true;
+    this.api.post(`/alunos/${this.alunoSelecionadoId}/encerrar`, {}).subscribe({
+      next: (res: any) => {
+        this.encerrando = false;
+        this.exibirModalEncerramento = false;
+        alert(
+          'Matrícula encerrada. O dossiê foi gerado e ficará disponível na aba ' +
+          '"Matrículas encerradas" por 30 dias, quando o registro será removido.'
+        );
+        this.carregarListaAlunos();
+        this.aluno = null;
+        this.alunoSelecionadoId = '';
+      },
+      error: (err) => {
+        this.encerrando = false;
+        alert(err?.error?.detail || 'Não foi possível encerrar a matrícula.');
+      }
+    });
   }
 
   salvarNotaFinanceira(nota: string): void {
