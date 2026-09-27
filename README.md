@@ -6,7 +6,7 @@
 
 Uma aplicação full-stack que informatiza a operação diária de uma escola marcial — matrícula, controle de tatame com cobrança por sessão, chamada de presença, progressão de graduação e gestão financeira com trava automática de inadimplência.
 
-[![CI](https://github.com/adriano-jose-peixoto/yokai-no-ki-sgi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/adriano-jose-peixoto/yokai-no-ki-sgi/actions/workflows/ci.yml)
+[![CI](https://github.com/Adriano-jose-dev/yokai-no-ki-sgi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Adriano-jose-dev/yokai-no-ki-sgi/actions/workflows/ci.yml)
 ![Angular](https://img.shields.io/badge/Angular-17-DD0031?logo=angular&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
@@ -165,5 +165,5 @@ pytest -q          # 35 testes: cobrança, trava, soft delete, auth, agendador
 ---
 
 <div align="center">
-<sub>Projeto de portfólio · desenvolvido por <a href="https://github.com/adriano-jose-peixoto">Adriano José Peixoto</a></sub>
+<sub>Projeto de portfólio · desenvolvido por <a href="https://github.com/Adriano-jose-dev">Adriano José Peixoto</a></sub>
 </div>
