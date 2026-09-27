@@ -146,11 +146,13 @@ npm start                     # http://localhost:4200
 
 ---
 
-## ✅ Testes
+## ✅ Testes automatizados
+
+Suíte com 35 testes cobrindo cobrança por sessão, trava de inadimplência, soft delete, autenticação e o agendador:
 
 ```bash
 cd backend
-pytest -q          # 35 testes: cobrança, trava, soft delete, auth, agendador
+pytest -q
 ```
 
 ---
