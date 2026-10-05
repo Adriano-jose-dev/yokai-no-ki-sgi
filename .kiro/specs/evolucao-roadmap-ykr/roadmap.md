@@ -5,12 +5,12 @@ final de cada uma antes de avançar.
 
 | Fase | Pilar | Escopo | Estado |
 | --- | --- | --- | --- |
-| 0 | Técnico | Modularização de `models.py`/`routers/` em domínios | ⏳ A planejar |
-| 1 | 1 — Tatame | Turmas, Modo Tatame por tipo, Calendário editável | 🔍 Em refinamento |
+| 0 | Técnico | Modularização de `models.py`/`routers/` em domínios | ✔️ Implementada |
+| 1 | 1 — Tatame | Turmas, Modo Tatame por tipo, Calendário editável | ✔️ Implementada |
 | 2 | 3 — Financeiro | Conta corrente (débito/crédito), 3 níveis de valor, abono de falta | ✔️ Implementada (84 testes + build verdes) |
 | 3 | 2 — Anamnese | Anamnese versionada + card de alerta crítico | ✔️ Implementada (97 testes + build verdes) |
 | 4 | 4 — Auditoria | Log de segurança com filtros (Geral/Aluno/Sensíveis) e retenção | ✔️ Implementada (108 testes + build verdes) |
-| 5 | 5 — Áreas | Material didático, professor e aluno | 🔮 Futuro (só mapeado) |
+| 5 | 5 — Áreas | Aluno, Professor e Material Didático (base do app multiplataforma) | 📋 Conceito capturado — ver [`fase5-areas.md`](fase5-areas.md) |
 
 **Legenda:** 🔍 refinando conceito · ✅ conceito travado · 📋 requisitos
 capturados, aguardando a vez · 🔮 futuro · ⏳ a planejar.
