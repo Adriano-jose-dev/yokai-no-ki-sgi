@@ -2,7 +2,7 @@
   <div class="flex flex-wrap justify-between items-center gap-3 mb-6 border-b pb-4 border-sumi-200">
     <h2 class="font-display text-2xl font-bold text-sumi-900 flex items-center gap-2">
       <lucide-icon name="swords" class="w-6 h-6 text-carmesim-600"></lucide-icon>
-      Modo Tatame — por Turma
+      Ambiente Tatame
     </h2>
     <div class="flex items-center gap-2">
       <label class="text-sm font-bold text-sumi-600">Turma de hoje:</label>
@@ -96,19 +96,58 @@
   </div>
   }
 
-  <!-- Hora-Aula: usa o cronômetro individual (aba 'Modo Tatame' legada) -->
+  <!-- Hora-Aula: cronômetro individual por aluno (cobrança por valor base × horas) -->
   @if (!ehMensalidade) {
-  <div class="bg-ouro-50 border border-ouro-200 rounded-xl p-5 text-sumi-700">
-    <p class="font-bold flex items-center gap-2 mb-1">
-      <lucide-icon name="info" class="w-4 h-4 text-ouro-700"></lucide-icon>
-      Turma de Hora-Aula
-    </p>
-    <p class="text-sm">
-      Turmas de Hora-Aula usam o <b>cronômetro individual</b> por aluno (início e
-      parada em cada card), com cobrança por <b>valor base × horas</b> — o mesmo
-      comportamento da aba <b>Modo Tatame</b>. A aula de hoje
-      {{ ocorrenciaId ? 'já está registrada no calendário' : 'ainda não foi criada' }}.
-    </p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (al of turma.alunos; track al.id_aluno) {
+    <div class="bg-white rounded-xl shadow-sm border-t-4 border-ouro-500 border-x border-b border-sumi-200 p-4 flex flex-col">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-bold text-sumi-900">{{ al.nome }}</h3>
+        @if (al.gratuito) {
+        <span class="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded uppercase font-black">Gratuito</span>
+        } @else if (al.papel === 'ocorrente') {
+        <span class="text-[9px] bg-ouro-100 text-ouro-800 px-1.5 py-0.5 rounded uppercase font-black">Ocorrente</span>
+        }
+      </div>
+
+      @if (sessoesAtivas[al.id_aluno]) {
+      <div class="font-mono text-2xl font-bold text-carmesim-600 mb-2 flex items-center gap-2">
+        <lucide-icon name="clock" class="w-5 h-5"></lucide-icon>
+        {{ tempoIndividual(al.id_aluno) }}
+      </div>
+      }
+
+      <textarea [(ngModel)]="diarios[al.id_aluno]"
+        class="w-full p-2 border border-sumi-200 rounded text-sm text-sumi-700 focus:outline-none focus:ring-2 focus:ring-ouro-500 resize-none h-12 bg-white mb-2"
+        placeholder="Diário do Sensei..."></textarea>
+
+      @if (sessoesAtivas[al.id_aluno]) {
+      <div class="flex items-center gap-2 mb-2">
+        <label class="text-xs font-bold text-sumi-500 whitespace-nowrap">Desconto (R$):</label>
+        <input type="number" [(ngModel)]="descontos[al.id_aluno]"
+          class="w-full p-1 text-xs border border-sumi-200 rounded focus:outline-none focus:ring-1 focus:ring-ouro-500"
+          placeholder="0,00">
+      </div>
+      }
+
+      <div class="mt-auto">
+        @if (!sessoesAtivas[al.id_aluno]) {
+        <button (click)="iniciarSessao(al.id_aluno)"
+          class="w-full bg-carmesim-600 hover:bg-carmesim-700 text-white font-bold py-2 rounded-lg shadow-sm transition-colors text-sm flex items-center justify-center gap-2">
+          <lucide-icon name="play" class="w-4 h-4"></lucide-icon> Iniciar Sessão
+        </button>
+        } @else {
+        <button (click)="pararSessao(al.id_aluno)"
+          class="w-full bg-sumi-800 hover:bg-sumi-900 text-white font-bold py-2 rounded-lg shadow-sm transition-colors text-sm flex items-center justify-center gap-2">
+          <lucide-icon name="square" class="w-4 h-4"></lucide-icon> Parar e Registrar
+        </button>
+        }
+      </div>
+    </div>
+    }
+    @if (turma.alunos.length === 0) {
+    <p class="text-sumi-400 italic col-span-full">Nenhum aluno vinculado a esta turma.</p>
+    }
   </div>
   }
   }

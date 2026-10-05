@@ -21,21 +21,7 @@
           [ngClass]="abaAtual === 'tatame' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
           class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
           <lucide-icon name="swords" class="w-4 h-4"></lucide-icon>
-          Modo Tatame
-        </button>
-
-        <button (click)="abaAtual = 'tatame_turma'"
-          [ngClass]="abaAtual === 'tatame_turma' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
-          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
-          <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
-          Tatame (Turma)
-        </button>
-
-        <button (click)="abaAtual = 'presenca'"
-          [ngClass]="abaAtual === 'presenca' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
-          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
-          <lucide-icon name="clipboard-list" class="w-4 h-4"></lucide-icon>
-          Presença
+          Ambiente Tatame
         </button>
 
         <button (click)="abaAtual = 'secretaria'"
@@ -72,15 +58,7 @@
   <main class="max-w-screen-2xl mx-auto">
 
     @if (abaAtual === 'tatame') {
-    <app-daily-panel></app-daily-panel>
-    }
-
-    @if (abaAtual === 'tatame_turma') {
     <app-tatame-turma></app-tatame-turma>
-    }
-
-    @if (abaAtual === 'presenca') {
-    <app-presenca-panel></app-presenca-panel>
     }
 
     @if (abaAtual === 'secretaria') {

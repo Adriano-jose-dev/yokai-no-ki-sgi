@@ -51,12 +51,23 @@ export class TatameTurmaComponent implements OnInit, OnDestroy {
   globalAgora = 0;
   intervalId: any;
 
+  // Cronômetro individual (Hora-Aula) — por aluno.
+  sessoesAtivas: { [id: string]: boolean } = {};
+  temposIniciais: { [id: string]: number } = {}; // epoch ms do início da sessão
+  temposAtuais: { [id: string]: number } = {};
+  descontos: { [id: string]: number } = {};
+
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
     this.carregarTurmas();
     this.intervalId = setInterval(() => {
-      if (this.globalRodando) this.globalAgora = Date.now();
+      const agora = Date.now();
+      if (this.globalRodando) this.globalAgora = agora;
+      // Atualiza os cronômetros individuais (Hora-Aula) em andamento.
+      for (const id in this.sessoesAtivas) {
+        if (this.sessoesAtivas[id]) this.temposAtuais[id] = agora;
+      }
     }, 1000);
   }
 
@@ -85,7 +96,28 @@ export class TatameTurmaComponent implements OnInit, OnDestroy {
         this.turma = t;
         this.presencas = {};
         this.diarios = {};
+        this.sessoesAtivas = {};
+        this.descontos = {};
         this.localizarOcorrenciaDoDia();
+        if (t.tipo_pagamento === 'Hora-Aula') {
+          this.sincronizarSessoesAtivas();
+        }
+      },
+    });
+  }
+
+  /** Para Hora-Aula: descobre quais alunos da turma já têm sessão aberta. */
+  private sincronizarSessoesAtivas(): void {
+    this.api.get<any[]>('/tatame/ativos').subscribe({
+      next: (ativos) => {
+        const idsTurma = new Set((this.turma?.alunos || []).map((a) => a.id_aluno));
+        for (const a of ativos || []) {
+          if (idsTurma.has(a.id_matricula) && a.hora_entrada) {
+            this.sessoesAtivas[a.id_matricula] = true;
+            this.temposIniciais[a.id_matricula] = new Date(a.hora_entrada).getTime();
+            this.temposAtuais[a.id_matricula] = Date.now();
+          }
+        }
       },
     });
   }
@@ -161,5 +193,51 @@ export class TatameTurmaComponent implements OnInit, OnDestroy {
         next: () => (this.presencas[idAluno] = presente ? 'Presente' : 'Ausente'),
         error: () => alert('Falha ao registrar presença.'),
       });
+  }
+
+  // --- Cronômetro individual (Hora-Aula) ---
+  // Reusa os endpoints de sessão existentes (/sessao/start e /sessao/stop),
+  // que já calculam a cobrança por valor base × horas.
+
+  iniciarSessao(idAluno: string): void {
+    this.api.post('/sessao/start', { id_matricula: idAluno }).subscribe({
+      next: () => {
+        this.sessoesAtivas[idAluno] = true;
+        this.temposIniciais[idAluno] = Date.now();
+        this.temposAtuais[idAluno] = Date.now();
+      },
+      error: (err) =>
+        alert(err?.error?.detail || 'Falha ao iniciar o cronômetro.'),
+    });
+  }
+
+  pararSessao(idAluno: string): void {
+    const payload = {
+      id_matricula: idAluno,
+      diario_sensei: this.diarios[idAluno] || null,
+      desconto_aplicado: this.descontos[idAluno] || 0.0,
+    };
+    this.api.post('/sessao/stop', payload).subscribe({
+      next: (res: any) => {
+        const valor = (res?.valor ?? 0).toFixed(2).replace('.', ',');
+        alert(`Sessão finalizada!\nPresença confirmada. Valor: R$ ${valor}`);
+        this.sessoesAtivas[idAluno] = false;
+        this.diarios[idAluno] = '';
+        this.descontos[idAluno] = 0;
+      },
+      error: () => alert('Falha ao encerrar a sessão.'),
+    });
+  }
+
+  tempoIndividual(idAluno: string): string {
+    if (!this.sessoesAtivas[idAluno] || !this.temposIniciais[idAluno]) {
+      return '00:00:00';
+    }
+    const diff = (this.temposAtuais[idAluno] || Date.now()) - this.temposIniciais[idAluno];
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const p = (n: number) => n.toString().padStart(2, '0');
+    return `${p(h)}:${p(m)}:${p(s)}`;
   }
 }
