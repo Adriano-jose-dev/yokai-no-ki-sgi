@@ -1,0 +1,170 @@
+<div class="p-4 sm:p-6">
+  <div class="bg-white rounded-lg shadow-sm border border-sumi-200 p-6">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4 mb-5">
+      <h2 class="text-xl font-bold text-sumi-800 m-0 flex items-center gap-2">
+        <lucide-icon name="users" class="w-6 h-6 text-carmesim-600"></lucide-icon>
+        Gestão de Turmas
+      </h2>
+      @if (!exibirForm) {
+      <button (click)="abrirForm()"
+        class="bg-carmesim-600 hover:bg-carmesim-700 text-white text-sm font-bold py-2 px-4 rounded shadow flex items-center gap-1.5">
+        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+        Nova Turma
+      </button>
+      }
+    </div>
+
+    <!-- Formulário de nova turma. -->
+    @if (exibirForm) {
+    <div class="bg-sumi-50 border border-sumi-200 rounded-lg p-5 mb-6">
+      <h3 class="text-md font-bold text-sumi-700 mb-4">Nova Turma</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Nome</label>
+          <input [(ngModel)]="nova.nome" placeholder="Ex.: Tengu, No Mori..."
+            class="w-full p-2 border rounded text-sm bg-white outline-none focus:ring-1 focus:ring-carmesim-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Valor base (hora)</label>
+          <input type="number" [(ngModel)]="nova.valor_base"
+            class="w-full p-2 border rounded text-sm bg-white outline-none focus:ring-1 focus:ring-carmesim-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Tipo de pagamento</label>
+          <select [(ngModel)]="nova.tipo_pagamento" class="w-full p-2 border rounded text-sm bg-white outline-none">
+            <option value="Mensalidade">Mensalidade</option>
+            <option value="Hora-Aula">Hora-Aula</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Classe</label>
+          <select [(ngModel)]="nova.classe" class="w-full p-2 border rounded text-sm bg-white outline-none">
+            <option value="Dojo">Dojo</option>
+            <option value="Legado">Legado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Início</label>
+          <input type="time" [(ngModel)]="nova.hora_inicio"
+            class="w-full p-2 border rounded text-sm bg-white outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Fim</label>
+          <input type="time" [(ngModel)]="nova.hora_fim"
+            class="w-full p-2 border rounded text-sm bg-white outline-none">
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-xs font-bold text-sumi-500 uppercase mb-2">Dias da semana (recorrência)</label>
+        <div class="flex flex-wrap gap-2">
+          @for (d of diasSemana; track d.cod) {
+          <label class="flex items-center gap-1.5 bg-white border rounded px-3 py-1.5 text-sm cursor-pointer"
+            [ngClass]="nova.dias[d.cod] ? 'border-carmesim-400 bg-carmesim-50 text-carmesim-700 font-bold' : 'border-sumi-200 text-sumi-600'">
+            <input type="checkbox" [(ngModel)]="nova.dias[d.cod]">
+            {{ d.label }}
+          </label>
+          }
+        </div>
+        <p class="text-[11px] text-sumi-400 italic mt-2">
+          Marque os dias de aula. Deixe vazio para uma turma sem recorrência (aulas avulsas).
+        </p>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-5">
+        <button (click)="exibirForm = false"
+          class="bg-sumi-200 hover:bg-sumi-300 text-sumi-700 text-xs font-bold py-2 px-4 rounded">Cancelar</button>
+        <button (click)="criarTurma()"
+          class="bg-carmesim-600 hover:bg-carmesim-700 text-white text-xs font-bold py-2 px-5 rounded shadow flex items-center gap-1.5">
+          <lucide-icon name="save" class="w-3.5 h-3.5"></lucide-icon>
+          Criar Turma
+        </button>
+      </div>
+    </div>
+    }
+
+    @if (carregando) {
+    <p class="text-sm text-sumi-400 italic py-8 text-center">Carregando turmas...</p>
+    }
+
+    @if (!carregando && turmas.length === 0 && !exibirForm) {
+    <p class="text-sm text-sumi-400 italic py-8 text-center">
+      Nenhuma turma cadastrada. Clique em "Nova Turma" para começar.
+    </p>
+    }
+
+    <!-- Lista de turmas (cards). -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      @for (t of turmas; track t.id) {
+      <div class="border border-sumi-200 rounded-lg p-5 flex flex-col">
+        <div class="flex justify-between items-start border-b pb-3 mb-3">
+          <div>
+            <h3 class="text-lg font-bold text-sumi-800 m-0 flex items-center gap-2">
+              {{ t.nome }}
+              <span class="text-[10px] font-black px-2 py-0.5 rounded uppercase"
+                [ngClass]="t.classe === 'Dojo' ? 'bg-sumi-100 text-sumi-600' : 'bg-ouro-100 text-ouro-800'">{{ t.classe }}</span>
+            </h3>
+            <p class="text-xs text-sumi-500 mt-1">
+              {{ t.tipo_pagamento }} · {{ formatarMoeda(t.valor_base) }}/h
+              @if (t.hora_inicio) { · {{ t.hora_inicio }}–{{ t.hora_fim }} }
+            </p>
+            @if (t.recorrencia_descricao) {
+            <p class="text-[11px] text-sumi-400 italic mt-0.5">{{ t.recorrencia_descricao }}</p>
+            }
+          </div>
+          <button (click)="desativarTurma(t)" title="Desativar turma"
+            class="text-sumi-400 hover:text-carmesim-600 p-1">
+            <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+          </button>
+        </div>
+
+        <!-- Alunos vinculados. -->
+        <div class="mb-3">
+          <p class="text-xs font-bold text-sumi-500 uppercase mb-2">Alunos ({{ t.alunos.length }})</p>
+          @if (t.alunos.length === 0) {
+          <p class="text-xs text-sumi-400 italic">Nenhum aluno vinculado.</p>
+          }
+          <div class="flex flex-col gap-1">
+            @for (a of t.alunos; track a.id_aluno) {
+            <div class="flex justify-between items-center bg-sumi-50 rounded px-2 py-1 text-xs">
+              <span class="text-sumi-700">
+                {{ a.nome }}
+                <span class="text-sumi-400">· {{ a.papel }}@if (a.gratuito) { · gratuito }</span>
+              </span>
+              <button (click)="desvincularAluno(t, a.id_aluno)" class="text-sumi-400 hover:text-carmesim-600">
+                <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Vincular aluno. -->
+        <div class="flex items-center gap-2 mb-3">
+          <select [(ngModel)]="alunoSelecionado[t.id]" class="flex-1 p-1.5 border rounded text-xs bg-white outline-none">
+            <option value="">Selecionar aluno...</option>
+            @for (al of alunos; track al.id_matricula) {
+            <option [value]="al.id_matricula">{{ al.nome }}</option>
+            }
+          </select>
+          <select [(ngModel)]="papelSelecionado[t.id]" class="p-1.5 border rounded text-xs bg-white outline-none">
+            <option value="matriculado">Matriculado</option>
+            <option value="ocorrente">Ocorrente</option>
+          </select>
+          <button (click)="vincularAluno(t)"
+            class="bg-sumi-700 hover:bg-sumi-800 text-white text-xs font-bold py-1.5 px-3 rounded">Vincular</button>
+        </div>
+
+        <!-- Gerar ocorrências. -->
+        <button (click)="gerarOcorrenciasMes(t)"
+          class="mt-auto bg-ouro-100 hover:bg-ouro-200 text-ouro-800 border border-ouro-200 text-xs font-bold py-2 px-3 rounded flex items-center justify-center gap-1.5">
+          <lucide-icon name="calendar-days" class="w-3.5 h-3.5"></lucide-icon>
+          Gerar aulas deste mês no calendário
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+</div>

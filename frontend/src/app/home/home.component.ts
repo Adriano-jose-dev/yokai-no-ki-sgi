@@ -9,6 +9,7 @@ import { EncerradasPanelComponent } from '../encerradas-panel/encerradas-panel.c
 import { CalendarioPanelComponent } from '../calendario-panel/calendario-panel.component';
 import { TatameTurmaComponent } from '../tatame-turma/tatame-turma.component';
 import { AuditoriaPanelComponent } from '../auditoria-panel/auditoria-panel.component';
+import { TurmasPanelComponent } from '../turmas-panel/turmas-panel.component';
 
 /**
  * Shell principal autenticado do SGI-YKR: cabeçalho, navegação por abas
@@ -27,6 +28,7 @@ import { AuditoriaPanelComponent } from '../auditoria-panel/auditoria-panel.comp
     CalendarioPanelComponent,
     TatameTurmaComponent,
     AuditoriaPanelComponent,
+    TurmasPanelComponent,
   ],
   templateUrl: './home.component.html',
 })
@@ -34,6 +36,7 @@ export class HomeComponent {
   abaAtual:
     | 'tatame'
     | 'secretaria'
+    | 'turmas'
     | 'calendario'
     | 'encerradas'
     | 'auditoria' = 'tatame';

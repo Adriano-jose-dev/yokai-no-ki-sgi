@@ -31,6 +31,13 @@
           Secretaria
         </button>
 
+        <button (click)="abaAtual = 'turmas'"
+          [ngClass]="abaAtual === 'turmas' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
+          Turmas
+        </button>
+
         <button (click)="abaAtual = 'calendario'"
           [ngClass]="abaAtual === 'calendario' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
           class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
@@ -70,6 +77,10 @@
 
     @if (abaAtual === 'secretaria') {
     <app-admin-detail></app-admin-detail>
+    }
+
+    @if (abaAtual === 'turmas') {
+    <app-turmas-panel></app-turmas-panel>
     }
 
     @if (abaAtual === 'calendario') {
