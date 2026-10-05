@@ -10,9 +10,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Contrato, Sessao, Pagamento
+from models import Contrato, Sessao, Pagamento, Usuario
 from schemas import ReceberPagamentoRequest
-from business.auth import requer_papel
+from business.auth import requer_papel, get_usuario_atual
+from business import auditoria
 
 router = APIRouter(
     tags=["Pagamentos"], dependencies=[Depends(requer_papel("admin"))]
@@ -30,9 +31,21 @@ router = APIRouter(
         "Qualquer sobra retorna em `troco_em_credito`."
     ),
 )
-def receber_pagamento(req: ReceberPagamentoRequest, db: Session = Depends(get_db)):
+def receber_pagamento(
+    req: ReceberPagamentoRequest,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_atual),
+):
     db.add(
         Pagamento(id_aluno=req.id_matricula, valor=req.valor_pago, metodo=req.metodo)
+    )
+    auditoria.registrar(
+        db,
+        acao="receber_pagamento",
+        autor=usuario.username,
+        id_aluno=req.id_matricula,
+        descricao=f"Pagamento recebido: R$ {req.valor_pago:.2f} ({req.metodo}).",
+        detalhes={"valor": req.valor_pago, "metodo": req.metodo},
     )
     saldo = req.valor_pago
     contrato = db.query(Contrato).filter(Contrato.id_aluno == req.id_matricula).first()

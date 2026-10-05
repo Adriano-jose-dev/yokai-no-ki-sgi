@@ -9,7 +9,7 @@ final de cada uma antes de avançar.
 | 1 | 1 — Tatame | Turmas, Modo Tatame por tipo, Calendário editável | 🔍 Em refinamento |
 | 2 | 3 — Financeiro | Conta corrente (débito/crédito), 3 níveis de valor, abono de falta | ✔️ Implementada (84 testes + build verdes) |
 | 3 | 2 — Anamnese | Anamnese versionada + card de alerta crítico | ✔️ Implementada (97 testes + build verdes) |
-| 4 | 4 — Auditoria | Log de segurança com filtros (Geral/Aluno/Sensíveis) e retenção | 📋 Capturado |
+| 4 | 4 — Auditoria | Log de segurança com filtros (Geral/Aluno/Sensíveis) e retenção | ✔️ Implementada (108 testes + build verdes) |
 | 5 | 5 — Áreas | Material didático, professor e aluno | 🔮 Futuro (só mapeado) |
 
 **Legenda:** 🔍 refinando conceito · ✅ conceito travado · 📋 requisitos

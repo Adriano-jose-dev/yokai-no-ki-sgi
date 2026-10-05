@@ -360,3 +360,45 @@ class Anamnese(Base):
     contato_emergencia_telefone = Column(String, nullable=True)
     autor = Column(String, nullable=True)
     criado_em = Column(DateTime, default=datetime.now, nullable=False)
+
+
+# =============================================================================
+# Domínio AUDITORIA — Log de segurança (Fase 4 do roadmap).
+#
+# Registra ações sensíveis da operação (quem editou contrato, quem recebeu/
+# apagou pagamento, quem encerrou matrícula, etc.). Aba exclusiva de admins.
+#
+# Categorias (steering, Fase 4):
+# - 'geral': fila com limite de 50 (ao exceder, remove a mais antiga); as
+#   demais são guardadas por 60 dias.
+# - 'aluno': recortável por aluno (filtro por `id_aluno`).
+# - 'sensivel': ações críticas isoladas (apagar pagamento, encerrar, destrancar).
+#
+# A categoria 'aluno' é um RECORTE (todo evento com `id_aluno` aparece lá); um
+# mesmo evento é 'geral' ou 'sensivel' na coluna `categoria` e, se tiver
+# `id_aluno`, também compõe a visão por aluno.
+# =============================================================================
+
+
+class RegistroAuditoria(Base):
+    """Uma entrada do log de auditoria.
+
+    - `categoria`: 'geral' ou 'sensivel' (a visão 'aluno' é derivada de
+      `id_aluno`, não um valor desta coluna).
+    - `acao`: identificador curto da operação (ex.: 'editar_contrato',
+      'apagar_pagamento', 'encerrar_matricula').
+    - `id_aluno`: alvo da ação, quando houver (habilita o filtro por aluno).
+    - `autor`: username do admin que executou.
+    - `descricao`: texto legível para a tela.
+    - `detalhes_json`: payload opcional (antes/depois, valores), em JSON.
+    """
+
+    __tablename__ = "registros_auditoria"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    categoria = Column(String, nullable=False, default="geral", index=True)
+    acao = Column(String, nullable=False)
+    id_aluno = Column(String, nullable=True, index=True)
+    autor = Column(String, nullable=True)
+    descricao = Column(String, nullable=True)
+    detalhes_json = Column(String, nullable=True)
+    criado_em = Column(DateTime, default=datetime.now, nullable=False, index=True)

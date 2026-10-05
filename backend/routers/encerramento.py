@@ -27,6 +27,7 @@ from database import get_db
 from models import Aluno, EncerramentoMatricula, Usuario
 from business.auth import requer_papel
 from business.dossie import gerar_dossie_pdf
+from business import auditoria
 
 router = APIRouter(
     tags=["Encerramento de Matrícula"],
@@ -90,6 +91,14 @@ def encerrar_matricula(
 
     # 3. Tira o aluno das telas do dia a dia (mas NÃO apaga nada ainda).
     aluno.status_atividade = STATUS_ENCERRADO
+
+    auditoria.registrar(
+        db,
+        acao="encerrar_matricula",
+        autor=admin.username,
+        id_aluno=id_matricula,
+        descricao=f"Matrícula encerrada; expurgo em {encerramento.data_expurgo.isoformat()}.",
+    )
 
     db.commit()
     return {
@@ -169,7 +178,11 @@ def baixar_dossie(id_matricula: str, db: Session = Depends(get_db)):
         "(cancelando o expurgo agendado)."
     ),
 )
-def revogar_encerramento(id_matricula: str, db: Session = Depends(get_db)):
+def revogar_encerramento(
+    id_matricula: str,
+    db: Session = Depends(get_db),
+    admin: Usuario = Depends(requer_papel("admin")),
+):
     encerramento = (
         db.query(EncerramentoMatricula)
         .filter(EncerramentoMatricula.id_aluno == id_matricula)
@@ -185,9 +198,18 @@ def revogar_encerramento(id_matricula: str, db: Session = Depends(get_db)):
         # Restaura exatamente o status em que o aluno estava antes.
         aluno.status_atividade = encerramento.estado_anterior
 
+    estado_restaurado = encerramento.estado_anterior
+    auditoria.registrar(
+        db,
+        acao="revogar_encerramento",
+        autor=admin.username,
+        id_aluno=id_matricula,
+        descricao=f"Encerramento revogado; status restaurado para {estado_restaurado}.",
+    )
+
     db.delete(encerramento)
     db.commit()
     return {
         "status": "Encerramento revogado",
-        "estado_restaurado": encerramento.estado_anterior,
+        "estado_restaurado": estado_restaurado,
     }

@@ -45,6 +45,13 @@
           Encerradas
         </button>
 
+        <button (click)="abaAtual = 'auditoria'"
+          [ngClass]="abaAtual === 'auditoria' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="shield-alert" class="w-4 h-4"></lucide-icon>
+          Auditoria
+        </button>
+
         <button (click)="sair()"
           class="bg-sumi-800 hover:bg-carmesim-700 text-sumi-200 hover:text-white font-semibold py-2.5 px-4 rounded-lg transition-all flex items-center gap-2 tracking-wide"
           title="Encerrar sessão">
@@ -71,6 +78,10 @@
 
     @if (abaAtual === 'encerradas') {
     <app-encerradas-panel></app-encerradas-panel>
+    }
+
+    @if (abaAtual === 'auditoria') {
+    <app-auditoria-panel></app-auditoria-panel>
     }
 
   </main>

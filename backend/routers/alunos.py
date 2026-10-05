@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Aluno, Contrato, Sessao, Pagamento, Presenca
+from models import Aluno, Contrato, Sessao, Pagamento, Presenca, Usuario
 from schemas import (
     NovoAlunoRequest,
     EditarFichaRequest,
@@ -25,7 +25,8 @@ from schemas import (
 )
 from business.trava import avaliar_trava_inadimplencia
 from business.helpers import formata_hora, encerrar_sessao_aberta
-from business.auth import requer_papel
+from business.auth import requer_papel, get_usuario_atual
+from business import auditoria
 
 router = APIRouter(
     tags=["Alunos & Secretaria"], dependencies=[Depends(requer_papel("admin"))]
@@ -198,7 +199,10 @@ def editar_aluno(
     ),
 )
 def editar_contrato(
-    id_matricula: str, req: EditarContratoRequest, db: Session = Depends(get_db)
+    id_matricula: str,
+    req: EditarContratoRequest,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_atual),
 ):
     contrato = db.query(Contrato).filter(Contrato.id_aluno == id_matricula).first()
     aluno = db.query(Aluno).filter(Aluno.id_matricula == id_matricula).first()
@@ -209,6 +213,14 @@ def editar_contrato(
     contrato.inclui_shokubai = req.inclui_shokubai
     contrato.dia_vencimento = req.dia_vencimento
     contrato.observacao_financeira = req.observacao_financeira
+
+    auditoria.registrar(
+        db,
+        acao="editar_contrato",
+        autor=usuario.username,
+        id_aluno=id_matricula,
+        descricao=f"Contrato editado (plano {req.modelo_plano}).",
+    )
 
     hoje = date.today()
     if contrato.modelo_plano == "Mensalidade":
@@ -262,7 +274,11 @@ def atualizar_valor_base(
         "automática nas próximas avaliações."
     ),
 )
-def destrancar_aluno(id_matricula: str, db: Session = Depends(get_db)):
+def destrancar_aluno(
+    id_matricula: str,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_atual),
+):
     aluno = db.query(Aluno).filter(Aluno.id_matricula == id_matricula).first()
     contrato = db.query(Contrato).filter(Contrato.id_aluno == id_matricula).first()
     aluno.status_atividade = "Ativo"
@@ -270,6 +286,13 @@ def destrancar_aluno(id_matricula: str, db: Session = Depends(get_db)):
     if "[ACORDO]" not in nota_atual:
         nota_limpa = re.sub(r"\[TRAVA AUTOMÁTICA\].*?\. ", "", nota_atual)
         contrato.observacao_financeira = f"[ACORDO] Liberado após trava. {nota_limpa}"
+    auditoria.registrar(
+        db,
+        acao="destrancar_aluno",
+        autor=usuario.username,
+        id_aluno=id_matricula,
+        descricao="Aluno destrancado (acordo registrado).",
+    )
     db.commit()
     return {"status": "Destrancado"}
 
@@ -489,12 +512,22 @@ def promover_aluno(
     ),
 )
 def alterar_status(
-    id_matricula: str, req: StatusRequest, db: Session = Depends(get_db)
+    id_matricula: str,
+    req: StatusRequest,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_atual),
 ):
     aluno = db.query(Aluno).filter(Aluno.id_matricula == id_matricula).first()
     aluno.status_atividade = req.novo_status
     if req.novo_status in ["Trancado", "Inativo"]:
         encerrar_sessao_aberta(db, id_matricula)
+    auditoria.registrar(
+        db,
+        acao="alterar_status",
+        autor=usuario.username,
+        id_aluno=id_matricula,
+        descricao=f"Status alterado para {req.novo_status}.",
+    )
     db.commit()
     return {"status": "Atualizado"}
 
@@ -508,7 +541,11 @@ def alterar_status(
         "é preservado. Retorna **404** se o aluno não existir."
     ),
 )
-def desativar_aluno(id_matricula: str, db: Session = Depends(get_db)):
+def desativar_aluno(
+    id_matricula: str,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_atual),
+):
     """Soft Delete: marca o aluno como `Inativo`, encerrando eventual sessão
     aberta. Nunca remove o registro do banco (preserva histórico)."""
     aluno = db.query(Aluno).filter(Aluno.id_matricula == id_matricula).first()
@@ -518,6 +555,13 @@ def desativar_aluno(id_matricula: str, db: Session = Depends(get_db)):
     aluno.status_atividade = "Inativo"
     encerrar_sessao_aberta(
         db, id_matricula, nota="[SISTEMA] Cronômetro cortado pela desativação."
+    )
+    auditoria.registrar(
+        db,
+        acao="desativar_aluno",
+        autor=usuario.username,
+        id_aluno=id_matricula,
+        descricao="Aluno suspenso (soft delete).",
     )
     db.commit()
     return {"status": "Aluno desativado"}

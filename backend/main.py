@@ -33,6 +33,7 @@ from models import (  # noqa: F401
     Lancamento,
     AbonoFalta,
     Anamnese,
+    RegistroAuditoria,
 )
 from schemas import (  # noqa: F401
     SessaoRequest,
@@ -66,6 +67,7 @@ from routers import (
     ocorrencias,
     financeiro,
     anamnese,
+    auditoria,
 )
 
 # Evolução do esquema (Requisito 9.4): em PRODUÇÃO o esquema é gerido por
@@ -204,6 +206,14 @@ TAGS_METADATA = [
             "de vencimento. Extrai o card de alerta crítico do perfil do aluno."
         ),
     },
+    {
+        "name": "Auditoria",
+        "description": (
+            "Log de segurança (exclusivo de admins) com as ações sensíveis da "
+            "operação. Categorias Geral e Sensíveis + visão por aluno, com "
+            "retenção de 60 dias e fila geral limitada a 50."
+        ),
+    },
 ]
 
 app = FastAPI(
@@ -234,3 +244,4 @@ app.include_router(turmas.router)
 app.include_router(ocorrencias.router)
 app.include_router(financeiro.router)
 app.include_router(anamnese.router)
+app.include_router(auditoria.router)

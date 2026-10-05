@@ -25,6 +25,7 @@ from models import Aluno, Anamnese, Usuario
 from schemas import SalvarAnamneseRequest
 from business.auth import requer_papel, get_usuario_atual
 from business import anamnese as svc
+from business import auditoria
 
 router = APIRouter(
     tags=["Anamnese"], dependencies=[Depends(requer_papel("admin"))]
@@ -116,6 +117,14 @@ def salvar_anamnese(
     # Sincroniza a string legada para não quebrar telas/parsers antigos.
     aluno.restricao_medica = svc.serializar_restricao_legada(
         req.respostas, req.observacao
+    )
+
+    auditoria.registrar(
+        db,
+        acao="salvar_anamnese",
+        autor=usuario.username,
+        id_aluno=id_aluno,
+        descricao=f"Anamnese registrada (v{nova_versao}).",
     )
 
     db.commit()

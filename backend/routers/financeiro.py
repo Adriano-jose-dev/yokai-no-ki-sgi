@@ -30,6 +30,7 @@ from schemas import (
 )
 from business.auth import requer_papel, get_usuario_atual
 from business import financeiro as fin
+from business import auditoria
 
 router = APIRouter(
     tags=["Financeiro"], dependencies=[Depends(requer_papel("admin"))]
@@ -114,11 +115,24 @@ def gerar_mensalidade(
         "disponível (saldo a favor do aluno)."
     ),
 )
-def pagar(id_aluno: str, req: PagamentoContaRequest, db: Session = Depends(get_db)):
+def pagar(
+    id_aluno: str,
+    req: PagamentoContaRequest,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_atual),
+):
     _exigir_aluno(db, id_aluno)
     if req.valor <= 0:
         raise HTTPException(status_code=400, detail="Valor deve ser positivo")
     resultado = fin.registrar_pagamento(db, id_aluno, req.valor, req.metodo)
+    auditoria.registrar(
+        db,
+        acao="receber_pagamento",
+        autor=usuario.username,
+        id_aluno=id_aluno,
+        descricao=f"Pagamento na conta corrente: R$ {req.valor:.2f} ({req.metodo}).",
+        detalhes={"valor": req.valor, "metodo": req.metodo},
+    )
     db.commit()
     return resultado
 
@@ -152,6 +166,13 @@ def abonar_falta(
         autor=usuario.username,
     )
     db.add(abono)
+    auditoria.registrar(
+        db,
+        acao="abonar_falta",
+        autor=usuario.username,
+        id_aluno=req.id_aluno,
+        descricao="Falta abonada (mensalista).",
+    )
     db.commit()
     db.refresh(abono)
     return {

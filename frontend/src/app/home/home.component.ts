@@ -8,6 +8,7 @@ import { AdminDetailComponent } from '../admin-detail/admin-detail.component';
 import { EncerradasPanelComponent } from '../encerradas-panel/encerradas-panel.component';
 import { CalendarioPanelComponent } from '../calendario-panel/calendario-panel.component';
 import { TatameTurmaComponent } from '../tatame-turma/tatame-turma.component';
+import { AuditoriaPanelComponent } from '../auditoria-panel/auditoria-panel.component';
 
 /**
  * Shell principal autenticado do SGI-YKR: cabeçalho, navegação por abas
@@ -25,6 +26,7 @@ import { TatameTurmaComponent } from '../tatame-turma/tatame-turma.component';
     EncerradasPanelComponent,
     CalendarioPanelComponent,
     TatameTurmaComponent,
+    AuditoriaPanelComponent,
   ],
   templateUrl: './home.component.html',
 })
@@ -33,7 +35,8 @@ export class HomeComponent {
     | 'tatame'
     | 'secretaria'
     | 'calendario'
-    | 'encerradas' = 'tatame';
+    | 'encerradas'
+    | 'auditoria' = 'tatame';
 
   constructor(private auth: AuthService, private router: Router) {}
 

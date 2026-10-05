@@ -206,3 +206,41 @@ Para alunos que **cortam o vínculo** com a escola. Ação restrita ao papel
 > Quando os setores forem separados, o expurgo passará a **anonimizar** o vínculo
 > nos registros de setor em vez de apagá-los, preservando o histórico contábil
 > sem dados pessoais.
+
+
+---
+
+## 6. Auditoria — Log de Segurança (Fase 4 — implementada)
+
+Aba **exclusiva de administradores** com o histórico das ações sensíveis da
+operação (`RegistroAuditoria`). A gravação é feita dentro das rotas de negócio
+via `business.auditoria.registrar` (sem commit próprio); a tela lê de
+`routers/auditoria.py`.
+
+### 6.1 Categorias (recortes)
+
+- **Geral:** o fluxo corrente de ações. É uma **fila** limitada a **50**
+  entradas (ao exceder, as mais antigas saem); o que resta é retido por **60
+  dias**.
+- **Sensíveis:** ações críticas **isoladas** (não entram na poda da fila nem
+  expiram pela regra dos 60 dias). São classificadas por `ACOES_SENSIVEIS`:
+  receber pagamento, encerrar/revogar matrícula, expurgo, destrancar, suspender
+  e alterar status.
+- **Por aluno:** recorte transversal — todos os eventos com aquele `id_aluno`,
+  de qualquer categoria.
+
+### 6.2 Retenção
+
+- A poda da fila **geral** (60 dias + máximo de 50) é aplicada de forma
+  **preguiçosa (lazy)** a cada leitura do log, análoga à trava de inadimplência.
+- O `RegistroAuditoria` **não** tem FK para o aluno de propósito: o log precisa
+  **sobreviver ao expurgo** (Hard Delete) do aluno — é justamente o registro de
+  que a ação ocorreu.
+
+### 6.3 O que é auditado hoje
+
+Editar contrato, destrancar, alterar status, suspender (soft delete), receber
+pagamento (secretaria e conta corrente), abonar falta, salvar anamnese, encerrar
+e revogar encerramento de matrícula. Cada entrada guarda **autor** (admin),
+**ação**, **aluno** (quando aplicável), **descrição** e um `detalhes_json`
+opcional.
