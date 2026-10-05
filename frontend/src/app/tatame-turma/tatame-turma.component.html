@@ -1,0 +1,115 @@
+<div class="p-6 text-left bg-sumi-50 min-h-screen">
+  <div class="flex flex-wrap justify-between items-center gap-3 mb-6 border-b pb-4 border-sumi-200">
+    <h2 class="font-display text-2xl font-bold text-sumi-900 flex items-center gap-2">
+      <lucide-icon name="swords" class="w-6 h-6 text-carmesim-600"></lucide-icon>
+      Modo Tatame — por Turma
+    </h2>
+    <div class="flex items-center gap-2">
+      <label class="text-sm font-bold text-sumi-600">Turma de hoje:</label>
+      <select [(ngModel)]="turmaSelecionadaId" (change)="selecionarTurma()"
+        class="p-2 border border-sumi-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-carmesim-500 outline-none">
+        <option [ngValue]="null">Selecione...</option>
+        @for (t of turmas; track t.id) {
+        <option [ngValue]="t.id">{{ t.nome }} ({{ t.tipo_pagamento }})</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (!turma) {
+  <div class="p-8 text-center text-sumi-400 italic bg-white rounded-xl border border-sumi-200">
+    Escolha a turma para iniciar a aula de hoje.
+  </div>
+  }
+
+  @if (turma) {
+  <!-- Faixa de contexto da turma -->
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    <span class="font-display text-lg font-bold text-sumi-900">{{ turma.nome }}</span>
+    <span
+      [ngClass]="ehMensalidade ? 'bg-carmesim-100 text-carmesim-800' : 'bg-ouro-100 text-ouro-800'"
+      class="text-xs font-black px-2 py-0.5 rounded uppercase">{{ turma.tipo_pagamento }}</span>
+    <span class="text-xs font-bold px-2 py-0.5 rounded bg-sumi-100 text-sumi-700 uppercase">{{ turma.classe }}</span>
+    @if (!ocorrenciaId) {
+    <button (click)="criarOcorrenciaHoje()"
+      class="ml-auto bg-sumi-800 hover:bg-sumi-900 text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1">
+      <lucide-icon name="calendar-days" class="w-3.5 h-3.5"></lucide-icon>
+      Criar aula de hoje
+    </button>
+    }
+  </div>
+
+  <!-- Cronômetro GLOBAL (apenas Mensalidade) -->
+  @if (ehMensalidade) {
+  <div class="bg-sumi-950 text-white rounded-xl p-4 mb-6 flex items-center justify-between shadow-lg">
+    <div>
+      <p class="text-xs text-sumi-300 uppercase tracking-wide">Cronômetro da aula (validação)</p>
+      <p class="font-mono text-3xl font-bold text-ouro-300">{{ tempoGlobal }}</p>
+    </div>
+    <div class="flex gap-2">
+      @if (!globalRodando) {
+      <button (click)="iniciarGlobal()"
+        class="bg-carmesim-600 hover:bg-carmesim-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+        <lucide-icon name="play" class="w-4 h-4"></lucide-icon> Iniciar aula
+      </button>
+      } @else {
+      <button (click)="pararGlobal()"
+        class="bg-ouro-600 hover:bg-ouro-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+        <lucide-icon name="square" class="w-4 h-4"></lucide-icon> Encerrar aula
+      </button>
+      }
+    </div>
+  </div>
+
+  <!-- Cards dos alunos: presença/ausência + diário -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (al of turma.alunos; track al.id_aluno) {
+    <div class="bg-white rounded-xl shadow-sm border-t-4 border-carmesim-600 border-x border-b border-sumi-200 p-4 flex flex-col">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-bold text-sumi-900">{{ al.nome }}</h3>
+        @if (al.papel === 'ocorrente') {
+        <span class="text-[9px] bg-ouro-100 text-ouro-800 px-1.5 py-0.5 rounded uppercase font-black">Ocorrente</span>
+        }
+      </div>
+
+      <div class="flex gap-2 mb-3">
+        <button (click)="marcarPresenca(al.id_aluno, true)"
+          [ngClass]="presencas[al.id_aluno] === 'Presente' ? 'bg-emerald-600 text-white shadow' : 'bg-sumi-100 text-sumi-600 hover:bg-emerald-50'"
+          class="flex-1 px-3 py-2 text-xs font-black rounded border border-sumi-200 uppercase transition-all flex items-center justify-center gap-1">
+          <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon> Presente
+        </button>
+        <button (click)="marcarPresenca(al.id_aluno, false)"
+          [ngClass]="presencas[al.id_aluno] === 'Ausente' ? 'bg-carmesim-600 text-white shadow' : 'bg-sumi-100 text-sumi-600 hover:bg-carmesim-50'"
+          class="flex-1 px-3 py-2 text-xs font-black rounded border border-sumi-200 uppercase transition-all flex items-center justify-center gap-1">
+          <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon> Ausente
+        </button>
+      </div>
+
+      <textarea [(ngModel)]="diarios[al.id_aluno]"
+        class="w-full p-2 border border-sumi-200 rounded text-sm text-sumi-700 focus:outline-none focus:ring-2 focus:ring-carmesim-500 resize-none h-12 bg-white mt-auto"
+        placeholder="Diário do Sensei..."></textarea>
+    </div>
+    }
+    @if (turma.alunos.length === 0) {
+    <p class="text-sumi-400 italic col-span-full">Nenhum aluno vinculado a esta turma.</p>
+    }
+  </div>
+  }
+
+  <!-- Hora-Aula: usa o cronômetro individual (aba 'Modo Tatame' legada) -->
+  @if (!ehMensalidade) {
+  <div class="bg-ouro-50 border border-ouro-200 rounded-xl p-5 text-sumi-700">
+    <p class="font-bold flex items-center gap-2 mb-1">
+      <lucide-icon name="info" class="w-4 h-4 text-ouro-700"></lucide-icon>
+      Turma de Hora-Aula
+    </p>
+    <p class="text-sm">
+      Turmas de Hora-Aula usam o <b>cronômetro individual</b> por aluno (início e
+      parada em cada card), com cobrança por <b>valor base × horas</b> — o mesmo
+      comportamento da aba <b>Modo Tatame</b>. A aula de hoje
+      {{ ocorrenciaId ? 'já está registrada no calendário' : 'ainda não foi criada' }}.
+    </p>
+  </div>
+  }
+  }
+</div>

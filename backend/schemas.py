@@ -124,3 +124,86 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+# --- Turmas (Fase 1 do roadmap) ---
+
+
+class MatriculaTurmaItem(BaseModel):
+    id_aluno: str
+    papel: str = "matriculado"  # 'matriculado' ou 'ocorrente'
+    gratuito: bool = False
+
+
+class NovaTurmaRequest(BaseModel):
+    nome: str
+    tipo_pagamento: str = "Mensalidade"  # 'Mensalidade' ou 'Hora-Aula'
+    classe: str = "Dojo"  # 'Dojo' ou 'Legado'
+    valor_base: float = 20.0
+    recorrencia_rrule: Optional[str] = None
+    recorrencia_descricao: Optional[str] = None
+    hora_inicio: Optional[str] = None
+    hora_fim: Optional[str] = None
+    alunos: List[MatriculaTurmaItem] = []
+
+
+class EditarTurmaRequest(BaseModel):
+    nome: Optional[str] = None
+    tipo_pagamento: Optional[str] = None
+    classe: Optional[str] = None
+    valor_base: Optional[float] = None
+    recorrencia_rrule: Optional[str] = None
+    recorrencia_descricao: Optional[str] = None
+    hora_inicio: Optional[str] = None
+    hora_fim: Optional[str] = None
+    ativo: Optional[bool] = None
+
+
+class VincularAlunoTurmaRequest(BaseModel):
+    id_aluno: str
+    papel: str = "matriculado"
+    gratuito: bool = False
+
+
+# --- Ocorrências de aula / Calendário (Fase 1b) ---
+
+
+class GerarOcorrenciasRequest(BaseModel):
+    """Intervalo para gerar ocorrências da recorrência de uma turma."""
+    data_inicio: date
+    data_fim: date
+
+
+class NovaOcorrenciaAvulsaRequest(BaseModel):
+    id_turma: int
+    data: date
+    hora_inicio: Optional[str] = None
+    hora_fim: Optional[str] = None
+    observacao: Optional[str] = None
+
+
+class EditarOcorrenciaRequest(BaseModel):
+    data: Optional[date] = None
+    hora_inicio: Optional[str] = None
+    hora_fim: Optional[str] = None
+    estado: Optional[str] = None  # prevista | realizada | cancelada
+    observacao: Optional[str] = None
+    duracao_real_min: Optional[int] = None
+
+
+# --- Modo Tatame por turma (Fase 1d) ---
+
+
+class PresencaOcorrenciaRequest(BaseModel):
+    """Marca presença/ausência de um aluno numa ocorrência (turma Mensalidade)."""
+    id_aluno: str
+    presente: bool
+    diario_sensei: Optional[str] = None
+
+
+class DuracaoRealRequest(BaseModel):
+    """Registra a duração real cronometrada da ocorrência (cronômetro global).
+
+    É validação do professor; NÃO entra no cálculo financeiro da mensalidade.
+    """
+    duracao_real_min: int

@@ -27,6 +27,9 @@ from models import (  # noqa: F401
     Presenca,
     Usuario,
     EncerramentoMatricula,
+    Turma,
+    TurmaMatricula,
+    OcorrenciaAula,
 )
 from schemas import (  # noqa: F401
     SessaoRequest,
@@ -49,7 +52,16 @@ from schemas import (  # noqa: F401
 from business.helpers import formata_hora, encerrar_sessao_aberta  # noqa: F401
 from business.trava import avaliar_trava_inadimplencia  # noqa: F401
 
-from routers import alunos, tatame, presenca, pagamentos, auth, encerramento
+from routers import (
+    alunos,
+    tatame,
+    presenca,
+    pagamentos,
+    auth,
+    encerramento,
+    turmas,
+    ocorrencias,
+)
 
 # Evolução do esquema (Requisito 9.4): em PRODUÇÃO o esquema é gerido por
 # migrations do Alembic (`alembic upgrade head`), NÃO por create_all. Mantemos o
@@ -154,6 +166,22 @@ TAGS_METADATA = [
             "fim da janela (Hard Delete / LGPD)."
         ),
     },
+    {
+        "name": "Turmas",
+        "description": (
+            "Turmas (molde de aula recorrente): tipo de pagamento, classe, valor "
+            "base, recorrência e alunos (matriculados/ocorrentes). Base do Modo "
+            "Tatame e do cálculo financeiro."
+        ),
+    },
+    {
+        "name": "Calendário / Ocorrências",
+        "description": (
+            "Ocorrências de aula (turma numa data) geradas da recorrência e "
+            "editáveis: mover, cancelar, excluir ou criar avulsas. Alimenta o "
+            "calendário e o cálculo financeiro."
+        ),
+    },
 ]
 
 app = FastAPI(
@@ -180,3 +208,5 @@ app.include_router(tatame.router)
 app.include_router(presenca.router)
 app.include_router(pagamentos.router)
 app.include_router(encerramento.router)
+app.include_router(turmas.router)
+app.include_router(ocorrencias.router)

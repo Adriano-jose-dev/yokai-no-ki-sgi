@@ -141,3 +141,92 @@ class EncerramentoMatricula(Base):
     dossie_nome = Column(String, nullable=True)
     # Quem encerrou (username do admin), para auditoria.
     encerrado_por = Column(String, nullable=True)
+
+
+# =============================================================================
+# Domínio TURMAS (Fase 1 do roadmap de evolução).
+#
+# Modularização leve: os modelos novos vivem a partir daqui, agrupados por
+# domínio, sem reorganizar os modelos legados acima.
+# =============================================================================
+
+
+class Turma(Base):
+    """Turma = molde de uma aula recorrente.
+
+    Base para o Modo Tatame (Fase 1d) e para o Financeiro (Fase 2, onde o
+    `valor_base` da turma e as ocorrências do calendário geram as cobranças).
+
+    - `tipo_pagamento`: 'Mensalidade' ou 'Hora-Aula' (define cronômetro e layout
+      do Modo Tatame, e o modelo de cobrança).
+    - `classe`: 'Dojo' ou 'Legado' — controle organizacional. Única regra
+      funcional: um aluno de Legado pode assistir aulas de Dojo gratuitamente
+      (participa como ocorrente, sem cobrança).
+    - `valor_base`: valor da hora-aula desta turma (usado no cálculo financeiro).
+    - `recorrencia_rrule`: regra de recorrência no padrão iCalendar/RRULE (ex.:
+      'FREQ=WEEKLY;BYDAY=SA' para todo sábado). Suporta qualquer regra.
+    - `recorrencia_descricao`: texto legível da recorrência, para exibição.
+    - `hora_inicio` / `hora_fim`: janela da aula (define a duração prevista).
+    """
+
+    __tablename__ = "turmas"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nome = Column(String, nullable=False)
+    tipo_pagamento = Column(String, nullable=False, default="Mensalidade")
+    classe = Column(String, nullable=False, default="Dojo")
+    valor_base = Column(Float, nullable=False, default=20.0)
+    recorrencia_rrule = Column(String, nullable=True)
+    recorrencia_descricao = Column(String, nullable=True)
+    hora_inicio = Column(String, nullable=True)  # "HH:MM"
+    hora_fim = Column(String, nullable=True)      # "HH:MM"
+    ativo = Column(Boolean, default=True, nullable=False)
+
+
+class TurmaMatricula(Base):
+    """Associação aluno↔turma, com o papel do aluno naquela turma.
+
+    - `papel = 'matriculado'`: o aluno pertence à turma e é cobrado por ela.
+    - `papel = 'ocorrente'`: o aluno participa sem ser o vínculo principal
+      (ex.: aluno de Legado assistindo Dojo). `gratuito=True` nesse caso.
+
+    Um aluno pode ter UMA matrícula principal e VÁRIAS participações como
+    ocorrente em outras turmas.
+    """
+
+    __tablename__ = "turma_matriculas"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    id_turma = Column(Integer, ForeignKey("turmas.id"), index=True, nullable=False)
+    id_aluno = Column(
+        String, ForeignKey("alunos.id_matricula"), index=True, nullable=False
+    )
+    papel = Column(String, nullable=False, default="matriculado")
+    gratuito = Column(Boolean, default=False, nullable=False)
+
+
+class OcorrenciaAula(Base):
+    """Ocorrência de aula = uma turma numa data específica (Fase 1b).
+
+    É o que o **calendário** lista (com estado) e o que o **financeiro** (Fase 2)
+    soma para calcular a mensalidade (somando as horas das ocorrências
+    `prevista`/`realizada`, descartando as `cancelada`).
+
+    - `estado`: 'prevista' (gerada e ainda não ocorreu), 'realizada' (aula
+      aconteceu), 'cancelada' (escola cancelou — sai do cálculo financeiro).
+    - `origem`: 'recorrencia' (gerada da RRULE da turma) ou 'avulsa' (criada à
+      mão, ex.: remarcação de hora-aula).
+    - `hora_inicio`/`hora_fim`: snapshot da janela (herdado da turma na geração,
+      mas editável por ocorrência). Define a **duração prevista**.
+    - `duracao_real_min`: minutos cronometrados no Modo Tatame (validação do
+      professor; NÃO entra no cálculo financeiro da mensalidade).
+    """
+
+    __tablename__ = "ocorrencias_aula"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_turma = Column(Integer, ForeignKey("turmas.id"), index=True, nullable=False)
+    data = Column(Date, nullable=False, index=True)
+    hora_inicio = Column(String, nullable=True)  # "HH:MM"
+    hora_fim = Column(String, nullable=True)      # "HH:MM"
+    estado = Column(String, nullable=False, default="prevista")
+    origem = Column(String, nullable=False, default="recorrencia")
+    observacao = Column(String, nullable=True)
+    duracao_real_min = Column(Integer, nullable=True)

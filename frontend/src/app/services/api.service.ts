@@ -41,6 +41,10 @@ export class ApiService {
     return this.http.put<T>(this.url(path), body);
   }
 
+  delete<T = any>(path: string): Observable<T> {
+    return this.http.delete<T>(this.url(path));
+  }
+
   /** Requisição genérica (usada, por ex., para escolher put/post dinamicamente). */
   request<T = any>(method: string, path: string, body: any = {}): Observable<T> {
     return this.http.request<T>(method, this.url(path), { body });

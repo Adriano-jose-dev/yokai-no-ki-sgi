@@ -30,6 +30,10 @@ psycopg2-binary==2.9.9
 # sistema), o que mantém o Dockerfile simples.
 reportlab==4.1.0
 
+# Expansão de regras de recorrência (RRULE/iCalendar) para gerar as ocorrências
+# de aula das turmas no calendário (Fase 1b do roadmap).
+python-dateutil==2.9.0.post0
+
 # --- Testes (não necessárias em produção) ---
 pytest==8.1.1
 httpx==0.27.0

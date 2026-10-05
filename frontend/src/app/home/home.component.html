@@ -24,6 +24,13 @@
           Modo Tatame
         </button>
 
+        <button (click)="abaAtual = 'tatame_turma'"
+          [ngClass]="abaAtual === 'tatame_turma' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
+          Tatame (Turma)
+        </button>
+
         <button (click)="abaAtual = 'presenca'"
           [ngClass]="abaAtual === 'presenca' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
           class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
@@ -36,6 +43,13 @@
           class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
           <lucide-icon name="users" class="w-4 h-4"></lucide-icon>
           Secretaria
+        </button>
+
+        <button (click)="abaAtual = 'calendario'"
+          [ngClass]="abaAtual === 'calendario' ? 'bg-carmesim-600 text-white shadow-md' : 'bg-sumi-800 text-sumi-200 hover:bg-sumi-700'"
+          class="font-semibold py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 tracking-wide">
+          <lucide-icon name="calendar-days" class="w-4 h-4"></lucide-icon>
+          Calendário
         </button>
 
         <button (click)="abaAtual = 'encerradas'"
@@ -61,12 +75,20 @@
     <app-daily-panel></app-daily-panel>
     }
 
+    @if (abaAtual === 'tatame_turma') {
+    <app-tatame-turma></app-tatame-turma>
+    }
+
     @if (abaAtual === 'presenca') {
     <app-presenca-panel></app-presenca-panel>
     }
 
     @if (abaAtual === 'secretaria') {
     <app-admin-detail></app-admin-detail>
+    }
+
+    @if (abaAtual === 'calendario') {
+    <app-calendario-panel></app-calendario-panel>
     }
 
     @if (abaAtual === 'encerradas') {
