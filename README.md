@@ -203,14 +203,9 @@ npm start                          # http://localhost:4200
 
 #### Login para testar
 
-Abra <http://localhost:4200> e entre com um dos usuários criados pelo `create_admin.py`:
-
-| Usuário | Senha |
-| --- | --- |
-| `sawayama.naryu` | `Yokai2026*` |
-| `sumiyoshi.kaito` | `Yokai2026*` |
-
-> São credenciais de MVP, chumbadas só para o primeiro acesso — troque em uso real.
+Abra <http://localhost:4200> e entre com um dos usuários criados pelo
+`create_admin.py`. As credenciais iniciais ficam nesse script (não são
+versionadas aqui no README) — e devem ser trocadas após o primeiro acesso.
 
 #### Roteiro rápido de teste
 
