@@ -1,0 +1,170 @@
+<div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">
+
+  <div class="flex justify-between items-center border-b pb-3 mb-4">
+    <h3 class="text-lg font-bold text-sumi-700 m-0 flex items-center gap-2">
+      <lucide-icon name="wallet" class="w-5 h-5 text-sumi-600"></lucide-icon>
+      Conta Corrente
+    </h3>
+    <div class="flex gap-2">
+      @if (ehMensalista) {
+      <button (click)="gerarMensalidade()"
+        class="bg-sumi-200 hover:bg-sumi-300 text-sumi-800 text-xs font-bold py-2 px-3 rounded shadow-sm flex items-center gap-1.5">
+        <lucide-icon name="calendar-clock" class="w-3.5 h-3.5"></lucide-icon>
+        Gerar Mensalidade
+      </button>
+      <button (click)="exibirModalAbono = true"
+        class="bg-ouro-100 hover:bg-ouro-200 text-ouro-800 text-xs font-bold py-2 px-3 rounded shadow-sm flex items-center gap-1.5 border border-ouro-200">
+        <lucide-icon name="check" class="w-3.5 h-3.5"></lucide-icon>
+        Abonar Falta
+      </button>
+      }
+      <button (click)="exibirModalPagar = true"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-4 rounded shadow flex items-center gap-1.5">
+        <lucide-icon name="wallet" class="w-3.5 h-3.5"></lucide-icon>
+        Registrar Pagamento
+      </button>
+    </div>
+  </div>
+
+  @if (carregando) {
+  <p class="text-sm text-sumi-400 italic py-6 text-center">Carregando conta corrente...</p>
+  }
+
+  @if (conta && !carregando) {
+
+  <!-- Cartões de saldo -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+    <div class="bg-carmesim-50 border border-carmesim-200 p-4 rounded text-left">
+      <p class="text-[11px] text-carmesim-600 font-bold uppercase mb-1">Valores em Aberto</p>
+      <p class="text-xl font-mono font-black text-carmesim-700">{{ formatarMoeda(conta.valores_em_aberto) }}</p>
+    </div>
+    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded text-left">
+      <p class="text-[11px] text-emerald-600 font-bold uppercase mb-1">Caixa / Crédito</p>
+      <p class="text-xl font-mono font-black text-emerald-700">{{ formatarMoeda(conta.credito_disponivel) }}</p>
+    </div>
+    <div class="p-4 rounded text-left border"
+      [ngClass]="conta.saldo_liquido < 0 ? 'bg-carmesim-50 border-carmesim-200' : 'bg-sumi-50 border-sumi-200'">
+      <p class="text-[11px] font-bold uppercase mb-1"
+        [ngClass]="conta.saldo_liquido < 0 ? 'text-carmesim-600' : 'text-sumi-500'">Saldo Líquido</p>
+      <p class="text-xl font-mono font-black"
+        [ngClass]="conta.saldo_liquido < 0 ? 'text-carmesim-700' : 'text-sumi-800'">
+        {{ formatarMoeda(conta.saldo_liquido) }}</p>
+    </div>
+  </div>
+
+  <!-- Prévia da mensalidade (mensalistas) -->
+  @if (ehMensalista && previsao) {
+  <div class="bg-ouro-50 border border-ouro-200 rounded p-3 mb-5 text-left">
+    <p class="text-xs text-ouro-800 font-bold flex items-center gap-1.5 mb-1">
+      <lucide-icon name="trending-up" class="w-3.5 h-3.5"></lucide-icon>
+      Prévia da Mensalidade ({{ previsao.mes_referencia }})
+    </p>
+    <p class="text-sm text-sumi-700">
+      {{ previsao.aulas }} aula(s) previstas · {{ previsao.horas }}h ·
+      <strong class="font-mono">{{ formatarMoeda(previsao.valor) }}</strong>
+    </p>
+    <p class="text-[11px] text-sumi-500 mt-1 italic">
+      Calculado pelo calendário (valor base × horas). Aulas canceladas pela escola reduzem o valor; faltas do aluno não.
+    </p>
+  </div>
+  }
+
+  <!-- Extrato de lançamentos -->
+  <h4 class="text-md font-bold text-sumi-700 mb-3 text-left">Extrato de Lançamentos</h4>
+  <div class="overflow-y-auto max-h-[360px] border border-sumi-200 rounded">
+    <table class="w-full text-left text-xs text-sumi-600">
+      <thead class="bg-sumi-50 text-sumi-500 uppercase sticky top-0 shadow-sm">
+        <tr>
+          <th class="py-2 px-3 text-left">Competência</th>
+          <th class="py-2 px-3 text-left">Descrição</th>
+          <th class="py-2 px-3 text-left">Vencimento</th>
+          <th class="py-2 px-3 text-right">Valor</th>
+          <th class="py-2 px-3 text-right">Em aberto</th>
+          <th class="py-2 px-3 text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (l of conta.extrato; track l.id) {
+        <tr class="border-b hover:bg-sumi-50 transition-colors">
+          <td class="py-2.5 px-3 text-left whitespace-nowrap">{{ l.data_competencia }}</td>
+          <td class="py-2.5 px-3 text-left">
+            <span class="font-bold"
+              [ngClass]="l.tipo === 'credito' ? 'text-emerald-700' : 'text-sumi-800'">
+              {{ rotuloCategoria(l.categoria) }}
+            </span>
+            @if (l.descricao) {
+            <span class="block text-[11px] text-sumi-400">{{ l.descricao }}</span>
+            }
+          </td>
+          <td class="py-2.5 px-3 text-left whitespace-nowrap">{{ l.data_vencimento || '—' }}</td>
+          <td class="py-2.5 px-3 text-right font-mono font-bold"
+            [ngClass]="l.tipo === 'credito' ? 'text-emerald-600' : 'text-carmesim-700'">
+            {{ l.tipo === 'credito' ? '+' : '-' }}{{ formatarMoeda(l.valor) }}
+          </td>
+          <td class="py-2.5 px-3 text-right font-mono text-sumi-600">{{ formatarMoeda(l.valor_aberto) }}</td>
+          <td class="py-2.5 px-3 text-left">
+            <span class="text-[10px] font-black px-2 py-0.5 rounded uppercase"
+              [ngClass]="{
+                'bg-emerald-100 text-emerald-700': l.status === 'quitado',
+                'bg-carmesim-100 text-carmesim-700': l.status === 'aberto',
+                'bg-ouro-100 text-ouro-800': l.status === 'parcial'
+              }">{{ l.status }}</span>
+          </td>
+        </tr>
+        }
+        @if (conta.extrato.length === 0) {
+        <tr>
+          <td colspan="6" class="py-6 text-center text-sumi-400 italic">Nenhum lançamento na conta corrente.</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+
+<!-- Modal: registrar pagamento -->
+@if (exibirModalPagar) {
+<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+    <h3 class="text-lg font-bold text-sumi-800 mb-4">Registrar Pagamento</h3>
+    <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Valor (R$)</label>
+    <input type="number" [(ngModel)]="valorPagar" min="0"
+      class="w-full p-2 border rounded text-sm mb-3 outline-none focus:ring-1 focus:ring-emerald-500">
+    <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Método</label>
+    <select [(ngModel)]="metodoPagar" class="w-full p-2 border rounded text-sm mb-5 bg-white outline-none">
+      <option value="Pix">Pix</option>
+      <option value="Dinheiro">Dinheiro</option>
+      <option value="Cartão">Cartão</option>
+      <option value="Transferência">Transferência</option>
+    </select>
+    <div class="flex justify-end gap-2">
+      <button (click)="exibirModalPagar = false"
+        class="bg-sumi-200 hover:bg-sumi-300 text-sumi-700 text-xs font-bold py-2 px-4 rounded">Cancelar</button>
+      <button (click)="confirmarPagamento()"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-5 rounded shadow">Confirmar</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Modal: abonar falta -->
+@if (exibirModalAbono) {
+<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+    <h3 class="text-lg font-bold text-sumi-800 mb-1">Abonar Falta</h3>
+    <p class="text-[11px] text-sumi-500 mb-4">Somente mensalistas. Não altera o valor da mensalidade — atua só sobre a
+      penalidade por falta.</p>
+    <label class="block text-xs font-bold text-sumi-500 uppercase mb-1">Justificativa</label>
+    <textarea [(ngModel)]="justificativaAbono" rows="3"
+      class="w-full p-2 border rounded text-sm mb-5 outline-none focus:ring-1 focus:ring-ouro-500"
+      placeholder="Ex: Atestado médico"></textarea>
+    <div class="flex justify-end gap-2">
+      <button (click)="exibirModalAbono = false"
+        class="bg-sumi-200 hover:bg-sumi-300 text-sumi-700 text-xs font-bold py-2 px-4 rounded">Cancelar</button>
+      <button (click)="confirmarAbono()"
+        class="bg-ouro-500 hover:bg-ouro-600 text-white text-xs font-bold py-2 px-5 rounded shadow">Abonar</button>
+    </div>
+  </div>
+</div>
+}

@@ -5,11 +5,12 @@ import { LucideAngularModule } from 'lucide-angular';
 
 import { ApiService } from '../services/api.service';
 import { MatriculaFormComponent } from '../matricula-form/matricula-form.component';
+import { ContaCorrentePanelComponent } from '../conta-corrente-panel/conta-corrente-panel.component';
 
 @Component({
   selector: 'app-admin-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, MatriculaFormComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, MatriculaFormComponent, ContaCorrentePanelComponent],
   templateUrl: './admin-detail.component.html'
 })
 export class AdminDetailComponent implements OnInit {

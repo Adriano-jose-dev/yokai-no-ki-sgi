@@ -207,3 +207,28 @@ class DuracaoRealRequest(BaseModel):
     É validação do professor; NÃO entra no cálculo financeiro da mensalidade.
     """
     duracao_real_min: int
+
+
+# --- Financeiro: conta corrente (Fase 2) ---
+
+
+class GerarMensalidadeRequest(BaseModel):
+    """Mês de competência para gerar/recalcular a mensalidade do aluno.
+
+    Se `ano`/`mes` forem omitidos, a rota usa o mês corrente.
+    """
+    ano: Optional[int] = None
+    mes: Optional[int] = None
+
+
+class PagamentoContaRequest(BaseModel):
+    """Registra um pagamento (crédito) na conta corrente do aluno."""
+    valor: float
+    metodo: str = "Dinheiro"
+
+
+class AbonoFaltaRequest(BaseModel):
+    """Abono de falta justificada — somente mensalistas (não altera o valor)."""
+    id_aluno: str
+    id_ocorrencia: Optional[int] = None
+    justificativa: Optional[str] = None

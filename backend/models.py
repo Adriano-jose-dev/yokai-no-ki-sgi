@@ -230,3 +230,80 @@ class OcorrenciaAula(Base):
     origem = Column(String, nullable=False, default="recorrencia")
     observacao = Column(String, nullable=True)
     duracao_real_min = Column(Integer, nullable=True)
+
+
+# =============================================================================
+# Domínio FINANCEIRO — Conta Corrente (Fase 2 do roadmap de evolução).
+#
+# A conta corrente do aluno é um razão (ledger) de lançamentos. Cada linha é um
+# débito (o que o aluno deve) ou um crédito (o que o aluno pagou/tem a favor). O
+# saldo da conta é a soma algébrica: crédito - débito aberto.
+#
+# Conceito-chave (steering, Fase 2):
+# - A mensalidade NÃO é um pacote fixo: é gerada somando `valor_base × horas` das
+#   ocorrências PREVISTAS/REALIZADAS do mês no calendário (aulas CANCELADAS pela
+#   escola saem da conta e reduzem o valor). Falta do aluno NÃO altera o valor.
+# - O débito só "existe" quando é GERADO (mensalidade no vencimento; hora-aula
+#   realizada e não paga; taxa de admissão). Antes disso é só previsão.
+# - Crédito (pago a mais) abate débito no momento em que o débito é gerado.
+# =============================================================================
+
+
+class Lancamento(Base):
+    """Lançamento da conta corrente do aluno (uma linha do razão).
+
+    - `tipo`: 'debito' (o aluno deve) ou 'credito' (pagamento/saldo a favor).
+    - `categoria`: 'mensalidade', 'hora_aula', 'taxa_admissao', 'pagamento' ou
+      'ajuste'.
+    - `valor`: sempre positivo; o sinal é dado por `tipo`.
+    - `valor_aberto`: parte ainda não quitada de um débito (0 quando quitado).
+      Para créditos, representa o saldo ainda disponível para abater débitos.
+    - `status`: 'aberto', 'parcial' ou 'quitado' (débitos); créditos usam
+      'aberto' (saldo disponível) ou 'quitado' (crédito já consumido).
+    - `mes_referencia`: 'YYYY-MM' da competência (mensalidade), para idempotência
+      na geração mensal.
+    - `id_ocorrencia`: ocorrência de origem (hora-aula), quando aplicável.
+    - `data_vencimento`: quando o débito vence (dispara a trava de inadimplência).
+    """
+
+    __tablename__ = "lancamentos"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_aluno = Column(
+        String, ForeignKey("alunos.id_matricula"), index=True, nullable=False
+    )
+    tipo = Column(String, nullable=False)  # 'debito' | 'credito'
+    categoria = Column(String, nullable=False, default="ajuste")
+    valor = Column(Float, nullable=False, default=0.0)
+    valor_aberto = Column(Float, nullable=False, default=0.0)
+    status = Column(String, nullable=False, default="aberto")
+    descricao = Column(String, nullable=True)
+    data_competencia = Column(Date, default=date.today, nullable=False)
+    data_vencimento = Column(Date, nullable=True)
+    mes_referencia = Column(String, nullable=True, index=True)  # 'YYYY-MM'
+    id_ocorrencia = Column(
+        Integer, ForeignKey("ocorrencias_aula.id"), nullable=True, index=True
+    )
+    metodo = Column(String, nullable=True)  # método do pagamento (créditos)
+    criado_em = Column(DateTime, default=datetime.now, nullable=False)
+
+
+class AbonoFalta(Base):
+    """Abono de falta justificada — SOMENTE mensalistas (steering, Fase 2).
+
+    É puramente sobre presença/penalidade: permite que o aluno falte de forma
+    justificada sem penalidade. **NÃO altera o valor da mensalidade** (a única
+    coisa que reduz o valor é o cancelamento de aula pela escola).
+    """
+
+    __tablename__ = "abonos_falta"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    id_aluno = Column(
+        String, ForeignKey("alunos.id_matricula"), index=True, nullable=False
+    )
+    id_ocorrencia = Column(
+        Integer, ForeignKey("ocorrencias_aula.id"), nullable=True, index=True
+    )
+    data = Column(Date, default=date.today, nullable=False)
+    justificativa = Column(String, nullable=True)
+    autor = Column(String, nullable=True)  # username do admin que abonou
+    criado_em = Column(DateTime, default=datetime.now, nullable=False)

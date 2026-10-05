@@ -502,6 +502,15 @@
 
     <!-- ================= ABA 3: FINANCEIRO E CONTRATO EMBUTIDO ================= -->
     @if (abaAtivaAluno === 'financeiro') {
+
+    <!-- Conta Corrente (Fase 2): saldo, extrato e automações do calendário. -->
+    <div class="mb-6">
+      <app-conta-corrente-panel
+        [idAluno]="alunoSelecionadoId"
+        [ehMensalista]="aluno.aluno.modelo_plano === 'Mensalidade'">
+      </app-conta-corrente-panel>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="flex flex-col gap-6">
         <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">

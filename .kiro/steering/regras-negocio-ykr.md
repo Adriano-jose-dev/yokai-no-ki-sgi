@@ -53,6 +53,56 @@ convertido para **horas decimais**. O custo é calculado conforme o plano:
   sistema de trava automática **ignora** este aluno (não é bloqueado mesmo em
   atraso).
 
+### 1.4 Conta Corrente (Fase 2 — implementada)
+
+O financeiro do aluno é uma **conta corrente**: um razão (ledger) de
+`Lancamento`, onde cada linha é um **débito** (o que o aluno deve) ou um
+**crédito** (o que pagou / tem a favor). O saldo é a soma algébrica
+(`credito_disponivel - valores_em_aberto`).
+
+**Três níveis de valor:**
+
+- **Valor base:** valor da **hora-aula de uma turma** (`Turma.valor_base`).
+- **Valor por aula** (Hora-Aula): `valor_base × horas da aula`.
+- **Valor mensalidade** (mensalistas): `valor_base × horas previstas das
+  ocorrências do mês` — somando as `OcorrenciaAula` de estado `prevista` ou
+  `realizada` das turmas de **Mensalidade** onde o aluno é **matriculado**
+  (ocorrentes não entram). Baseia-se nas **horas previstas do calendário**, não
+  numa média fixa.
+
+**Regra da mensalidade (acumulado por calendário):**
+
+- O valor é gerado somando as horas de todas as aulas previstas no **calendário**
+  do mês para a(s) turma(s) do aluno.
+- Só muda se a **escola cancelar uma aula** (estado `cancelada` sai da conta e o
+  valor diminui). **Falta do aluno NÃO altera o valor.**
+- A geração é **idempotente** por `mes_referencia` (`YYYY-MM`): regerar o mês
+  **recalcula** o débito (refletindo cancelamentos), preservando o que já foi
+  quitado, em vez de duplicar.
+- O débito vence no `dia_vencimento` do contrato (`data_vencimento`), sobre o
+  qual a **trava de inadimplência** (seção 1.2) continua agindo.
+- Interpretação-chave: o mensalista paga pelas aulas que a **escola ofertou** no
+  mês, não pelas que compareceu.
+
+**Débito × crédito:**
+
+- O **débito** só passa a existir quando é **gerado** (mensalidade no vencimento;
+  hora-aula realizada e não paga; taxa de admissão). Antes disso é só previsão.
+- Pagamento vira **crédito**; a sobra (pago a mais) fica como **crédito
+  disponível** (saldo a favor).
+- O crédito **abate o débito no momento em que o débito é gerado** (e também no
+  ato do pagamento, consumindo os débitos abertos mais antigos primeiro).
+- A **taxa de admissão (matrícula)** continua existindo como mais um débito,
+  quitável pelo crédito.
+
+### 1.5 Abono de Falta (mensalistas)
+
+- Aplica-se **somente** a mensalistas (`AbonoFalta`); recusa (400) outros planos.
+- É puramente sobre **presença/penalidade**: permite faltar de forma justificada
+  sem penalidade. Registra justificativa e autor (admin).
+- **NÃO altera o valor da mensalidade** — a única coisa que reduz o valor é o
+  **cancelamento de aula pela escola** (seção 1.4).
+
 ---
 
 ## 2. Matrícula e Secretaria

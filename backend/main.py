@@ -30,6 +30,8 @@ from models import (  # noqa: F401
     Turma,
     TurmaMatricula,
     OcorrenciaAula,
+    Lancamento,
+    AbonoFalta,
 )
 from schemas import (  # noqa: F401
     SessaoRequest,
@@ -61,6 +63,7 @@ from routers import (
     encerramento,
     turmas,
     ocorrencias,
+    financeiro,
 )
 
 # Evolução do esquema (Requisito 9.4): em PRODUÇÃO o esquema é gerido por
@@ -182,6 +185,15 @@ TAGS_METADATA = [
             "calendário e o cálculo financeiro."
         ),
     },
+    {
+        "name": "Financeiro",
+        "description": (
+            "Conta corrente do aluno (débito × crédito). Mensalidade gerada do "
+            "calendário (valor_base × horas previstas), geração de débito no "
+            "vencimento, pagamentos que abatem débitos e abono de falta de "
+            "mensalistas (sem alterar o valor)."
+        ),
+    },
 ]
 
 app = FastAPI(
@@ -210,3 +222,4 @@ app.include_router(pagamentos.router)
 app.include_router(encerramento.router)
 app.include_router(turmas.router)
 app.include_router(ocorrencias.router)
+app.include_router(financeiro.router)
