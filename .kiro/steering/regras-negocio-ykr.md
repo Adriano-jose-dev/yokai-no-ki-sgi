@@ -118,6 +118,29 @@ O financeiro do aluno é uma **conta corrente**: um razão (ledger) de
   no Módulo Tatame deve receber um registro automático de `Presente` na tabela
   `Presencas`, com a data do dia.
 
+### 2.1 Anamnese Versionada e Card de Alerta Crítico (Fase 3 — implementada)
+
+A anamnese é um **prontuário médico versionado** (`Anamnese`): cada
+preenchimento gera uma **nova versão**; as anteriores **não somem** — viram
+histórico (apenas a `ativa` é a vigente).
+
+- **Validade:** a ficha é refeita a cada **6 ou 12 meses** (`validade_meses`). A
+  `data_validade` = `data_preenchimento + validade_meses`. O status é:
+  - `vencida` quando `hoje > data_validade`;
+  - `vence_em_breve` quando faltam **≤ 30 dias**;
+  - `ok` caso contrário.
+  O sistema **alerta** quando a anamnese vence/está por vencer.
+- **Card de alerta crítico:** área de destaque (estilo post-it) no perfil do
+  aluno, **extraída da anamnese ativa**. Lista apenas as condições que
+  **interferem direto na aula** (régua de criticidade em `business/anamnese.py`:
+  cardíaco, dores no peito, falta de ar, tontura, pressão alta, diabetes, asma,
+  alergia — com severidade alta/média), mais a **observação** e os **contatos de
+  emergência** (snapshot no momento do preenchimento). Condições não críticas
+  (ex.: cirurgia recente) ficam no prontuário mas **não** disparam o card.
+- **Coexistência com o legado:** o campo string `Aluno.restricao_medica`
+  (`"Condições: X. Obs: Z"`) continua existindo e é **sincronizado** ao salvar
+  uma anamnese nova, para não quebrar telas/parsers antigos.
+
 ---
 
 ## 3. Progressão Marcial (Régua de Graduação)

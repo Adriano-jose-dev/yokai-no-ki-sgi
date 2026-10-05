@@ -32,6 +32,7 @@ from models import (  # noqa: F401
     OcorrenciaAula,
     Lancamento,
     AbonoFalta,
+    Anamnese,
 )
 from schemas import (  # noqa: F401
     SessaoRequest,
@@ -64,6 +65,7 @@ from routers import (
     turmas,
     ocorrencias,
     financeiro,
+    anamnese,
 )
 
 # Evolução do esquema (Requisito 9.4): em PRODUÇÃO o esquema é gerido por
@@ -194,6 +196,14 @@ TAGS_METADATA = [
             "mensalistas (sem alterar o valor)."
         ),
     },
+    {
+        "name": "Anamnese",
+        "description": (
+            "Prontuário médico versionado: cada preenchimento gera uma versão "
+            "(as antigas viram histórico), com validade de 6/12 meses e alerta "
+            "de vencimento. Extrai o card de alerta crítico do perfil do aluno."
+        ),
+    },
 ]
 
 app = FastAPI(
@@ -223,3 +233,4 @@ app.include_router(encerramento.router)
 app.include_router(turmas.router)
 app.include_router(ocorrencias.router)
 app.include_router(financeiro.router)
+app.include_router(anamnese.router)

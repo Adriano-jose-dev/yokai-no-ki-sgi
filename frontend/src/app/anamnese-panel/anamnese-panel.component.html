@@ -1,0 +1,191 @@
+<!-- ================= CARD DE ALERTA CRÍTICO (estilo post-it) ================= -->
+@if (card && card.tem_alerta) {
+<div class="bg-carmesim-50 border-2 border-carmesim-400 rounded-lg shadow-md p-5 mb-5 relative overflow-hidden">
+  <div class="absolute top-0 left-0 w-1.5 h-full bg-carmesim-500"></div>
+  <div class="flex items-start gap-3">
+    <div class="shrink-0 bg-carmesim-100 rounded-full p-2">
+      <lucide-icon name="shield-alert" class="w-6 h-6 text-carmesim-700"></lucide-icon>
+    </div>
+    <div class="flex-1">
+      <h3 class="text-base font-black text-carmesim-800 uppercase tracking-wide m-0 flex items-center gap-2">
+        Alerta Médico Crítico
+        @if (card.validade.status === 'vencida') {
+        <span class="bg-carmesim-700 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">Anamnese
+          vencida</span>
+        }
+        @if (card.validade.status === 'vence_em_breve') {
+        <span class="bg-ouro-500 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">Vence em
+          {{ card.validade.dias_restantes }}d</span>
+        }
+      </h3>
+
+      <div class="flex flex-wrap gap-2 mt-3">
+        @for (c of card.condicoes; track c.chave) {
+        <span class="text-xs font-bold px-2.5 py-1 rounded-full border flex items-center gap-1.5"
+          [ngClass]="c.severidade === 'alta' ? 'bg-carmesim-100 text-carmesim-800 border-carmesim-300' : 'bg-ouro-100 text-ouro-800 border-ouro-300'">
+          <lucide-icon name="heart-pulse" class="w-3.5 h-3.5"></lucide-icon>
+          {{ c.label }}
+        </span>
+        }
+      </div>
+
+      @if (card.observacao) {
+      <p class="text-sm text-carmesim-900 mt-3 bg-white/70 p-2 rounded border border-carmesim-200">
+        <strong class="font-bold">Obs.:</strong> {{ card.observacao }}
+      </p>
+      }
+
+      @if (card.contato_emergencia.nome || card.contato_emergencia.telefone) {
+      <div class="mt-3 flex items-center gap-2 text-sm text-carmesim-800">
+        <lucide-icon name="phone" class="w-4 h-4"></lucide-icon>
+        <span class="font-bold">Emergência:</span>
+        <span>{{ card.contato_emergencia.nome || '—' }}
+          @if (card.contato_emergencia.parentesco) { ({{ card.contato_emergencia.parentesco }}) }
+          @if (card.contato_emergencia.telefone) { · {{ card.contato_emergencia.telefone }} }
+        </span>
+      </div>
+      }
+
+      <p class="text-[11px] text-carmesim-500 mt-2 italic">
+        Anamnese v{{ card.versao }} · preenchida em {{ card.data_preenchimento }}
+      </p>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Aviso quando a anamnese venceu mas não há condição crítica. -->
+@if (card && !card.tem_alerta && card.validade.status === 'vencida') {
+<div class="bg-ouro-50 border border-ouro-300 rounded-lg p-3 mb-5 flex items-center gap-2 text-sm text-ouro-800">
+  <lucide-icon name="alert-triangle" class="w-4 h-4"></lucide-icon>
+  Anamnese vencida — recomende a refação da ficha médica.
+</div>
+}
+
+<!-- ================= PRONTUÁRIO VERSIONADO ================= -->
+@if (!somenteAlerta) {
+<div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">
+  <div class="flex justify-between items-center border-b pb-3 mb-4">
+    <h3 class="text-lg font-bold text-sumi-700 m-0 flex items-center gap-2">
+      <lucide-icon name="heart-pulse" class="w-5 h-5 text-carmesim-600"></lucide-icon>
+      Anamnese (Prontuário)
+    </h3>
+    @if (!exibirForm) {
+    <button (click)="abrirForm()"
+      class="bg-carmesim-600 hover:bg-carmesim-700 text-white text-xs font-bold py-2 px-4 rounded shadow flex items-center gap-1.5">
+      <lucide-icon name="plus" class="w-3.5 h-3.5"></lucide-icon>
+      Nova versão
+    </button>
+    }
+  </div>
+
+  @if (carregando) {
+  <p class="text-sm text-sumi-400 italic py-4 text-center">Carregando anamnese...</p>
+  }
+
+  <!-- Estado atual (resumo da versão ativa). -->
+  @if (!exibirForm && ativa) {
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
+    <div class="bg-sumi-50 border border-sumi-200 p-3 rounded text-left">
+      <p class="text-[11px] text-sumi-500 font-bold uppercase mb-1">Versão vigente</p>
+      <p class="text-sm text-sumi-800 font-bold">v{{ ativa.versao }}</p>
+    </div>
+    <div class="bg-sumi-50 border border-sumi-200 p-3 rounded text-left">
+      <p class="text-[11px] text-sumi-500 font-bold uppercase mb-1">Preenchida</p>
+      <p class="text-sm text-sumi-800 font-bold">{{ ativa.data_preenchimento }}</p>
+    </div>
+    <div class="p-3 rounded text-left border"
+      [ngClass]="card?.validade?.status === 'vencida' ? 'bg-carmesim-50 border-carmesim-200' : (card?.validade?.status === 'vence_em_breve' ? 'bg-ouro-50 border-ouro-200' : 'bg-emerald-50 border-emerald-200')">
+      <p class="text-[11px] font-bold uppercase mb-1 text-sumi-500">Validade</p>
+      <p class="text-sm font-bold"
+        [ngClass]="card?.validade?.status === 'vencida' ? 'text-carmesim-700' : (card?.validade?.status === 'vence_em_breve' ? 'text-ouro-700' : 'text-emerald-700')">
+        {{ ativa.data_validade || '—' }} · {{ rotuloValidade(card?.validade?.status || 'ok') }}
+      </p>
+    </div>
+  </div>
+  }
+
+  @if (!exibirForm && !ativa && !carregando) {
+  <p class="text-sm text-sumi-400 italic py-4 text-center">
+    Nenhuma anamnese registrada. Clique em "Nova versão" para preencher.
+  </p>
+  }
+
+  <!-- Formulário de nova versão. -->
+  @if (exibirForm) {
+  <div class="space-y-2">
+    @for (p of perguntas; track p.chave) {
+    <div class="flex justify-between items-center bg-sumi-50 p-2 rounded border text-xs">
+      <span class="font-bold text-sumi-700">{{ p.label }}</span>
+      <div class="flex gap-3">
+        <label class="flex items-center gap-1"><input type="radio" [name]="'anamnese_' + p.chave"
+            [(ngModel)]="respostas[p.chave]" value="sim"> Sim</label>
+        <label class="flex items-center gap-1"><input type="radio" [name]="'anamnese_' + p.chave"
+            [(ngModel)]="respostas[p.chave]" value="nao"> Não</label>
+      </div>
+    </div>
+    }
+    <textarea [(ngModel)]="observacao" rows="2" placeholder="Observações médicas (detalhes, medicação...)"
+      class="w-full p-2 text-sm border rounded outline-none focus:ring-1 focus:ring-carmesim-500 mt-1"></textarea>
+
+    <div class="flex items-center gap-3 mt-1">
+      <label class="text-xs font-bold text-sumi-500 uppercase">Validade:</label>
+      <select [(ngModel)]="validadeMeses" class="p-1.5 border rounded text-sm bg-white outline-none">
+        <option [ngValue]="6">6 meses</option>
+        <option [ngValue]="12">12 meses</option>
+      </select>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-3">
+      <button (click)="exibirForm = false"
+        class="bg-sumi-200 hover:bg-sumi-300 text-sumi-700 text-xs font-bold py-2 px-4 rounded">Cancelar</button>
+      <button (click)="salvar()"
+        class="bg-carmesim-600 hover:bg-carmesim-700 text-white text-xs font-bold py-2 px-5 rounded shadow flex items-center gap-1.5">
+        <lucide-icon name="save" class="w-3.5 h-3.5"></lucide-icon>
+        Salvar versão
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- Histórico de versões. -->
+  @if (!exibirForm && historico.length > 0) {
+  <div class="mt-5">
+    <h4 class="text-sm font-bold text-sumi-600 mb-2 flex items-center gap-1.5">
+      <lucide-icon name="history" class="w-4 h-4"></lucide-icon>
+      Histórico de versões
+    </h4>
+    <div class="overflow-y-auto max-h-[220px] border border-sumi-200 rounded">
+      <table class="w-full text-left text-xs text-sumi-600">
+        <thead class="bg-sumi-50 text-sumi-500 uppercase sticky top-0">
+          <tr>
+            <th class="py-2 px-3">Versão</th>
+            <th class="py-2 px-3">Preenchida</th>
+            <th class="py-2 px-3">Validade</th>
+            <th class="py-2 px-3">Autor</th>
+            <th class="py-2 px-3">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of historico; track v.id) {
+          <tr class="border-b hover:bg-sumi-50">
+            <td class="py-2 px-3 font-bold text-sumi-800">v{{ v.versao }}</td>
+            <td class="py-2 px-3">{{ v.data_preenchimento }}</td>
+            <td class="py-2 px-3">{{ v.data_validade || '—' }}</td>
+            <td class="py-2 px-3">{{ v.autor || '—' }}</td>
+            <td class="py-2 px-3">
+              @if (v.ativa) {
+              <span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded uppercase">Ativa</span>
+              } @else {
+              <span class="bg-sumi-100 text-sumi-500 text-[10px] font-black px-2 py-0.5 rounded uppercase">Histórico</span>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+</div>
+}

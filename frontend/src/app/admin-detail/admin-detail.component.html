@@ -77,6 +77,10 @@
 
     <!-- ================= ABA 1: VISÃO GERAL ================= -->
     @if (abaAtivaAluno === 'resumo') {
+
+    <!-- Card de alerta crítico (Fase 3): sempre visível no topo do perfil. -->
+    <app-anamnese-panel [idAluno]="alunoSelecionadoId" [somenteAlerta]="true"></app-anamnese-panel>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white p-6 rounded-lg shadow-sm border border-sumi-200 flex flex-col">
         <h3 class="text-lg font-bold text-sumi-700 text-left mb-4">Gestão de Status</h3>
@@ -168,6 +172,12 @@
 
     <!-- ================= ABA 2: FICHA COMPLETA ================= -->
     @if (abaAtivaAluno === 'ficha') {
+
+    <!-- Anamnese versionada (Fase 3): card de alerta crítico + prontuário + histórico. -->
+    <div class="mb-6">
+      <app-anamnese-panel [idAluno]="alunoSelecionadoId"></app-anamnese-panel>
+    </div>
+
     <div class="bg-white p-8 rounded-lg shadow-sm border border-sumi-200">
 
       <div class="flex justify-between items-center border-b pb-4 mb-6">

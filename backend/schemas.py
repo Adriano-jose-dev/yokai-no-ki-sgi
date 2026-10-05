@@ -232,3 +232,21 @@ class AbonoFaltaRequest(BaseModel):
     id_aluno: str
     id_ocorrencia: Optional[int] = None
     justificativa: Optional[str] = None
+
+
+# --- Anamnese versionada (Fase 3) ---
+
+
+class SalvarAnamneseRequest(BaseModel):
+    """Nova versão da anamnese do aluno.
+
+    `respostas` é um mapa `{chave: "sim"|"nao"}` das perguntas; `validade_meses`
+    deve ser 6 ou 12. Os contatos de emergência são um snapshot opcional (se
+    omitidos, o router herda os da ficha do aluno).
+    """
+    respostas: dict = {}
+    observacao: Optional[str] = None
+    validade_meses: int = 12
+    contato_emergencia_nome: Optional[str] = None
+    contato_emergencia_parentesco: Optional[str] = None
+    contato_emergencia_telefone: Optional[str] = None

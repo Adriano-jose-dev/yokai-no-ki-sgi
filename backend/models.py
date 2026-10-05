@@ -307,3 +307,56 @@ class AbonoFalta(Base):
     justificativa = Column(String, nullable=True)
     autor = Column(String, nullable=True)  # username do admin que abonou
     criado_em = Column(DateTime, default=datetime.now, nullable=False)
+
+
+# =============================================================================
+# Domínio ANAMNESE — Prontuário médico versionado (Fase 3 do roadmap).
+#
+# A anamnese é refeita periodicamente (a cada 6 ou 12 meses). Cada preenchimento
+# gera uma NOVA versão; as anteriores não somem — viram histórico (apenas a
+# `ativa` é a vigente). Da anamnese ativa o sistema extrai o CARD DE ALERTA
+# CRÍTICO do perfil (condições que interferem direto na aula: asma, cardíaco,
+# ossos frágeis, articulações, condições mentais, etc.) e os contatos de
+# emergência.
+#
+# Coexistência com o legado: `Aluno.restricao_medica` (string
+# "Condições: X. Obs: Z") continua existindo e é sincronizada ao salvar uma
+# anamnese nova, para não quebrar os parsers/telas antigos.
+# =============================================================================
+
+
+class Anamnese(Base):
+    """Uma versão da ficha de anamnese de um aluno (prontuário versionado).
+
+    - `versao`: inteiro incremental por aluno (1, 2, 3...).
+    - `ativa`: `True` apenas para a versão vigente; as demais são histórico.
+    - `validade_meses`: 6 ou 12 (periodicidade da refação).
+    - `data_validade`: `data_preenchimento + validade_meses` — base do alerta de
+      vencimento (ver `business/anamnese.py`).
+    - `respostas_json`: JSON `{chave: "sim"|"nao"}` das perguntas da anamnese.
+    - `condicoes_criticas_json`: JSON (lista de chaves) das respostas "sim" que
+      são clinicamente críticas — a fonte do card de alerta.
+    - `observacao`: texto livre (detalhes médicos).
+    - `contato_emergencia_*`: snapshot no momento do preenchimento (o card de
+      alerta precisa dos contatos mesmo que a ficha mude depois).
+    - `autor`: username do admin que registrou a versão.
+    """
+
+    __tablename__ = "anamneses"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_aluno = Column(
+        String, ForeignKey("alunos.id_matricula"), index=True, nullable=False
+    )
+    versao = Column(Integer, nullable=False, default=1)
+    ativa = Column(Boolean, nullable=False, default=True, index=True)
+    data_preenchimento = Column(Date, nullable=False, default=date.today)
+    validade_meses = Column(Integer, nullable=False, default=12)
+    data_validade = Column(Date, nullable=True)
+    respostas_json = Column(String, nullable=True, default="{}")
+    condicoes_criticas_json = Column(String, nullable=True, default="[]")
+    observacao = Column(String, nullable=True)
+    contato_emergencia_nome = Column(String, nullable=True)
+    contato_emergencia_parentesco = Column(String, nullable=True)
+    contato_emergencia_telefone = Column(String, nullable=True)
+    autor = Column(String, nullable=True)
+    criado_em = Column(DateTime, default=datetime.now, nullable=False)

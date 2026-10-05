@@ -8,7 +8,7 @@ final de cada uma antes de avançar.
 | 0 | Técnico | Modularização de `models.py`/`routers/` em domínios | ⏳ A planejar |
 | 1 | 1 — Tatame | Turmas, Modo Tatame por tipo, Calendário editável | 🔍 Em refinamento |
 | 2 | 3 — Financeiro | Conta corrente (débito/crédito), 3 níveis de valor, abono de falta | ✔️ Implementada (84 testes + build verdes) |
-| 3 | 2 — Anamnese | Anamnese versionada + card de alerta crítico | 📋 Capturado |
+| 3 | 2 — Anamnese | Anamnese versionada + card de alerta crítico | ✔️ Implementada (97 testes + build verdes) |
 | 4 | 4 — Auditoria | Log de segurança com filtros (Geral/Aluno/Sensíveis) e retenção | 📋 Capturado |
 | 5 | 5 — Áreas | Material didático, professor e aluno | 🔮 Futuro (só mapeado) |
 
