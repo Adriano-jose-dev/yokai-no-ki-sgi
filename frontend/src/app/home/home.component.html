@@ -1,5 +1,35 @@
 <div class="min-h-screen bg-sumi-50 font-sans">
 
+  <!-- S2: troca de senha obrigatória no primeiro acesso (modal bloqueante). -->
+  @if (precisaTrocarSenha) {
+  <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+      <h3 class="text-lg font-bold text-sumi-800 mb-1 flex items-center gap-2">
+        <lucide-icon name="shield-alert" class="w-5 h-5 text-carmesim-600"></lucide-icon>
+        Troque sua senha
+      </h3>
+      <p class="text-[11px] text-sumi-500 mb-4">
+        Por segurança, defina uma nova senha antes de continuar (mínimo 10 caracteres, misturando letras, números e símbolos).
+      </p>
+      <input type="password" [(ngModel)]="senhaAtual" placeholder="Senha atual"
+        class="w-full p-2 border rounded text-sm mb-2 outline-none focus:ring-1 focus:ring-carmesim-500">
+      <input type="password" [(ngModel)]="novaSenha" placeholder="Nova senha"
+        class="w-full p-2 border rounded text-sm mb-2 outline-none focus:ring-1 focus:ring-carmesim-500">
+      <input type="password" [(ngModel)]="novaSenhaConfirma" placeholder="Confirmar nova senha"
+        class="w-full p-2 border rounded text-sm mb-3 outline-none focus:ring-1 focus:ring-carmesim-500">
+      @if (erroTroca) {
+      <p class="text-xs text-carmesim-700 font-bold mb-3">{{ erroTroca }}</p>
+      }
+      <div class="flex justify-end gap-2">
+        <button (click)="sair()"
+          class="bg-sumi-200 hover:bg-sumi-300 text-sumi-700 text-xs font-bold py-2 px-4 rounded">Sair</button>
+        <button (click)="confirmarTrocaSenha()"
+          class="bg-carmesim-600 hover:bg-carmesim-700 text-white text-xs font-bold py-2 px-5 rounded shadow">Salvar</button>
+      </div>
+    </div>
+  </div>
+  }
+
   <header class="bg-sumi-950 shadow-lg border-b-4 border-carmesim-600">
     <div
       class="max-w-screen-2xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">

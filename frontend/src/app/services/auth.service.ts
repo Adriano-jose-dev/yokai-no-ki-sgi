@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 interface TokenResponse {
   access_token: string;
   token_type: string;
+  precisa_trocar_senha?: boolean;
 }
 
 /**
@@ -23,6 +24,9 @@ interface TokenResponse {
 export class AuthService {
   private readonly TOKEN_KEY = 'ynk_token';
   private readonly baseUrl = environment.apiUrl;
+
+  /** Sinaliza que o usuário logado precisa trocar a senha (S2). */
+  precisaTrocarSenha = false;
 
   // Estado reativo para a UI (ex.: alternar login/shell no AppComponent).
   private readonly autenticadoSubject = new BehaviorSubject<boolean>(this.temToken());
@@ -48,9 +52,20 @@ export class AuthService {
       .pipe(
         tap((res) => {
           localStorage.setItem(this.TOKEN_KEY, res.access_token);
+          this.precisaTrocarSenha = !!res.precisa_trocar_senha;
           this.autenticadoSubject.next(true);
         })
       );
+  }
+
+  /** Troca a senha do usuário autenticado (S2). */
+  trocarSenha(senhaAtual: string, novaSenha: string): Observable<any> {
+    return this.http
+      .post(`${this.baseUrl}/auth/trocar-senha`, {
+        senha_atual: senhaAtual,
+        nova_senha: novaSenha,
+      })
+      .pipe(tap(() => (this.precisaTrocarSenha = false)));
   }
 
   logout(): void {

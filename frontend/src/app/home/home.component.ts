@@ -1,5 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 
@@ -22,6 +23,7 @@ import { TurmasPanelComponent } from '../turmas-panel/turmas-panel.component';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     LucideAngularModule,
     AdminDetailComponent,
     EncerradasPanelComponent,
@@ -41,11 +43,39 @@ export class HomeComponent {
     | 'encerradas'
     | 'auditoria' = 'tatame';
 
+  // S2: troca de senha obrigatória no primeiro acesso.
+  senhaAtual = '';
+  novaSenha = '';
+  novaSenhaConfirma = '';
+  erroTroca = '';
+
   constructor(private auth: AuthService, private router: Router) {}
 
   @HostListener('window:navegarParaSecretaria')
   irParaSecretaria() {
     this.abaAtual = 'secretaria';
+  }
+
+  get precisaTrocarSenha(): boolean {
+    return this.auth.precisaTrocarSenha;
+  }
+
+  confirmarTrocaSenha(): void {
+    this.erroTroca = '';
+    if (this.novaSenha !== this.novaSenhaConfirma) {
+      this.erroTroca = 'A confirmação não confere com a nova senha.';
+      return;
+    }
+    this.auth.trocarSenha(this.senhaAtual, this.novaSenha).subscribe({
+      next: () => {
+        this.senhaAtual = '';
+        this.novaSenha = '';
+        this.novaSenhaConfirma = '';
+        alert('Senha alterada com sucesso.');
+      },
+      error: (err) =>
+        (this.erroTroca = err?.error?.detail || 'Não foi possível trocar a senha.'),
+    });
   }
 
   sair(): void {
