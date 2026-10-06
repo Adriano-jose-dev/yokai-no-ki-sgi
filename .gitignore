@@ -9,6 +9,11 @@
 backend/.env
 frontend/.env
 
+# --- Documentos internos de segurança (manter só no folder local) ---
+# O plano de segurança mapeia fraquezas ainda não corrigidas; não deve ir ao
+# repositório público enquanto os itens S1-S9 não estiverem resolvidos.
+docs/SEGURANCA.md
+
 # --- Banco de dados local (SQLite de desenvolvimento) ---
 *.db
 *.sqlite
