@@ -128,6 +128,12 @@ def _turma_dict(db: Session, turma: Turma) -> dict:
                 "nome": aluno.nome if aluno else "(aluno removido)",
                 "papel": v.papel,
                 "gratuito": v.gratuito,
+                # Campos de contexto do aluno para o card do Ambiente Tatame
+                # reproduzir o visual rico do Modo Tatame original.
+                "graduacao_atual": aluno.graduacao_atual if aluno else None,
+                "status_atividade": aluno.status_atividade if aluno else None,
+                "restricao_medica": aluno.restricao_medica if aluno else None,
+                "autorizacao_imagem": aluno.autorizacao_imagem if aluno else False,
             }
         )
     return {

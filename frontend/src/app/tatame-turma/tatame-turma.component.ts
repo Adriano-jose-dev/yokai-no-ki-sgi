@@ -11,7 +11,16 @@ interface Turma {
   tipo_pagamento: string;
   classe: string;
   valor_base: number;
-  alunos: { id_aluno: string; nome: string; papel: string; gratuito: boolean }[];
+  alunos: {
+    id_aluno: string;
+    nome: string;
+    papel: string;
+    gratuito: boolean;
+    graduacao_atual?: string | null;
+    status_atividade?: string | null;
+    restricao_medica?: string | null;
+    autorizacao_imagem?: boolean;
+  }[];
 }
 
 /**
