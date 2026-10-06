@@ -77,15 +77,35 @@ por **dependência técnica** (ver `.kiro/specs/evolucao-roadmap-ykr/`).
   imagem), enriquecendo o endpoint de turma com os campos do aluno. Commit
   `e2fb413`.
 
+### Hardening de segurança (pós-roadmap)
+
+Após as 4 fases, iniciou-se o endurecimento de segurança (plano em
+`docs/SEGURANCA.md`). Primeira leva — itens **S1, S2 e S3**:
+
+- **S1 — Fail-safe de segredos:** a aplicação **recusa iniciar em produção**
+  (banco não-SQLite) se o `JWT_SECRET` ainda for o valor padrão de dev. As
+  credenciais iniciais do `create_admin.py` passaram a vir de variáveis de
+  ambiente (`YNK_ADMIN*_USER/PASS`), com fallback só em dev.
+- **S2 — Política de senha + troca no 1º acesso:** novo campo
+  `Usuario.precisa_trocar_senha`; endpoint `POST /auth/trocar-senha` (valida
+  senha atual, força da nova e que seja diferente); validador de força (mín. 10
+  caracteres, misturando tipos). O **front** mostra um modal bloqueante de troca
+  de senha no primeiro login. Commits `d6db2d9` (back) e `0d4728e` (front).
+- **S3 — Rate limiting no login:** limitador em memória (5 falhas em 5 min →
+  bloqueio de 15 min, por usuário+IP); login bloqueado retorna **429** e o
+  bloqueio é registrado na auditoria.
+
 ### Estado atual
 
 - Monolito → aplicação **modular por domínio**.
-- **108 testes** automatizados no back-end, todos verdes.
+- **121 testes** automatizados no back-end, todos verdes (108 do roadmap + 13 de
+  segurança).
 - Build do front verde.
-- Fases 0–4 implementadas, commitadas e no GitHub.
+- Fases 0–4 implementadas + hardening S1–S3, tudo commitado e no GitHub.
 - **Fase 5** (Áreas: Aluno, Professor, Material Didático) com **conceito
   capturado** em `.kiro/specs/evolucao-roadmap-ykr/fase5-areas.md` — é a fronteira
   para o app multiplataforma.
+- Segurança: S1–S3 feitos; **S4–S9 pendentes** (ver `docs/SEGURANCA.md`).
 
 ---
 
