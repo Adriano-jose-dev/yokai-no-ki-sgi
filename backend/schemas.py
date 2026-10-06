@@ -124,6 +124,13 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    # S2: indica ao front que o usuário deve trocar a senha antes de seguir.
+    precisa_trocar_senha: bool = False
+
+
+class TrocarSenhaRequest(BaseModel):
+    senha_atual: str
+    nova_senha: str
 
 
 # --- Turmas (Fase 1 do roadmap) ---

@@ -15,6 +15,20 @@ from fastapi.testclient import TestClient
 import main
 from main import app, Base, get_db, Usuario
 from business.auth import get_usuario_atual
+from business import ratelimit
+
+
+@pytest.fixture(autouse=True)
+def _resetar_ratelimit():
+    """Zera o rate limiter de login antes de cada teste.
+
+    O limitador vive em memória e é global ao processo; sem este reset, o
+    estado de um teste poderia vazar para outro (ex.: deixar uma chave
+    bloqueada e fazer um login legítimo de outro teste falhar com 429).
+    """
+    ratelimit.resetar()
+    yield
+    ratelimit.resetar()
 
 
 @pytest.fixture()

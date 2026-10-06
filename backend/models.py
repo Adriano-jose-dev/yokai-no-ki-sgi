@@ -105,6 +105,8 @@ class Usuario(Base):
     senha_hash = Column(String, nullable=False)
     role = Column(String, default="admin", nullable=False)
     ativo = Column(Boolean, default=True, nullable=False)
+    # S2 (segurança): força a troca de senha no primeiro acesso.
+    precisa_trocar_senha = Column(Boolean, default=True, nullable=False)
 
 
 class EncerramentoMatricula(Base):

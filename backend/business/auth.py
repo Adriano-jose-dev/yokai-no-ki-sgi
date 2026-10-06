@@ -34,6 +34,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 ALGORITHM = "HS256"
 
 
+# Política de senha (S2). Mínimo pragmático para o MVP; endurecer se necessário.
+SENHA_TAMANHO_MINIMO = 10
+
+
+def validar_forca_senha(senha: str) -> tuple[bool, str]:
+    """Valida a força de uma senha (S2).
+
+    Regra: pelo menos `SENHA_TAMANHO_MINIMO` caracteres e não pode ser só
+    dígitos nem só letras (exige variedade mínima). Retorna `(ok, motivo)` —
+    `motivo` traz a razão quando `ok` é `False`.
+    """
+    if not senha or len(senha) < SENHA_TAMANHO_MINIMO:
+        return False, f"mínimo de {SENHA_TAMANHO_MINIMO} caracteres"
+    if senha.isdigit() or senha.isalpha():
+        return False, "misture letras, números e símbolos"
+    return True, ""
+
+
 def hash_senha(senha: str) -> str:
     return pwd_context.hash(senha)
 

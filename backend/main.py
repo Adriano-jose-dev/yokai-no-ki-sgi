@@ -52,6 +52,7 @@ from schemas import (  # noqa: F401
     AtualizarValorBaseRequest,
     LoginRequest,
     TokenResponse,
+    TrocarSenhaRequest,
 )
 from business.helpers import formata_hora, encerrar_sessao_aberta  # noqa: F401
 from business.trava import avaliar_trava_inadimplencia  # noqa: F401
@@ -86,6 +87,11 @@ if config.is_sqlite():
 # avaliação sob demanda (lazy) nas rotas permanece como rede de segurança.
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    # Fail-safe de segurança (S1): aborta se, em produção, o JWT_SECRET for o
+    # padrão inseguro. Propositalmente FORA de try/except — queremos que a
+    # aplicação NÃO suba nesse cenário.
+    config.validar_seguranca_producao()
+
     try:
         from business.scheduler import iniciar_agendador
 
