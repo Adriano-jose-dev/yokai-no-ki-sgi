@@ -30,15 +30,53 @@ from datetime import date
 # (matricula-form / admin-detail), para a string legada continuar coerente.
 # `critica=True` => a resposta "sim" entra no card de alerta crítico.
 CATALOGO_PERGUNTAS = [
-    {"chave": "problemas_cardiacos", "label": "Problemas cardíacos", "critica": True, "severidade": "alta"},
-    {"chave": "dores_peito", "label": "Dores no peito", "critica": True, "severidade": "alta"},
-    {"chave": "falta_ar", "label": "Falta de ar", "critica": True, "severidade": "media"},
-    {"chave": "tontura", "label": "Tonturas ou desmaios", "critica": True, "severidade": "alta"},
-    {"chave": "pressao_alta", "label": "Pressão alta (hipertensão)", "critica": True, "severidade": "alta"},
-    {"chave": "diabetes", "label": "Diabetes", "critica": True, "severidade": "media"},
-    {"chave": "asma", "label": "Asma / problema respiratório", "critica": True, "severidade": "alta"},
-    {"chave": "cirurgias", "label": "Cirurgia nos últimos 12 meses", "critica": False, "severidade": "media"},
-    {"chave": "alergias", "label": "Alergia relevante", "critica": True, "severidade": "media"},
+    # Idêntico à ficha física da Yōkai no Ki Ryūha (Shinden Sōgō Bujutsu).
+    # Perguntas numeradas conforme o documento oficial.
+    {
+        "chave": "problemas_cardiacos",
+        "label": "Algum médico já lhe disse que possui um problema cardíaco e que só deveria realizar atividade física sob supervisão médica?",
+        "critica": True, "severidade": "alta",
+    },
+    {
+        "chave": "dores_peito_atividade",
+        "label": "Sente dores no peito quando pratica atividade física?",
+        "critica": True, "severidade": "alta",
+    },
+    {
+        "chave": "dores_peito_repouso",
+        "label": "No último mês, sentiu dores no peito ao realizar atividades físicas ou em repouso?",
+        "critica": True, "severidade": "alta",
+    },
+    {
+        "chave": "tontura_desmaio",
+        "label": "Apresenta desequilíbrio devido a tonturas ou já perdeu a consciência/desmaiou alguma vez?",
+        "critica": True, "severidade": "alta",
+    },
+    {
+        "chave": "problema_osseo_articular",
+        "label": "Possui algum problema ósseo ou articular (ex: costas, joelhos, ombros, virilha) que pode agravar-se com a prática de artes marciais ou com o uso de armamento de treino?",
+        "critica": True, "severidade": "alta",
+    },
+    {
+        "chave": "condicao_respiratoria",
+        "label": "Sofre de alguma condição respiratória (ex: asma, bronquite) que exija cuidados ao ar livre?",
+        "critica": True, "severidade": "alta",
+    },
+    {
+        "chave": "medicacao_pressao_cardiaco",
+        "label": "Toma atualmente alguma medicação contínua para a pressão arterial ou problema cardíaco?",
+        "critica": True, "severidade": "alta",
+    },
+    {
+        "chave": "cirurgia_recente",
+        "label": "Passou por alguma cirurgia recente?",
+        "critica": False, "severidade": "media",
+    },
+    {
+        "chave": "outra_razao_medica",
+        "label": "Sabe de alguma outra razão física, médica ou psicológica pela qual não deva praticar atividades físicas intensas?",
+        "critica": True, "severidade": "media",
+    },
 ]
 
 # Índices auxiliares derivados do catálogo.

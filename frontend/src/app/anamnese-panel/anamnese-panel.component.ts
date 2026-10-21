@@ -64,17 +64,17 @@ export class AnamnesePanelComponent implements OnChanges {
   /** Quando `true`, renderiza SÓ o card de alerta crítico (uso no Resumo). */
   @Input() somenteAlerta = false;
 
-  // Catálogo de perguntas (espelha o backend business/anamnese.py).
+  // Catálogo de perguntas — idêntico à ficha física da Yōkai no Ki Ryūha.
   perguntas = [
-    { chave: 'problemas_cardiacos', label: 'Problemas cardíacos' },
-    { chave: 'dores_peito', label: 'Dores no peito' },
-    { chave: 'falta_ar', label: 'Falta de ar' },
-    { chave: 'tontura', label: 'Tonturas ou desmaios' },
-    { chave: 'pressao_alta', label: 'Pressão alta (hipertensão)' },
-    { chave: 'diabetes', label: 'Diabetes' },
-    { chave: 'asma', label: 'Asma / problema respiratório' },
-    { chave: 'cirurgias', label: 'Cirurgia nos últimos 12 meses' },
-    { chave: 'alergias', label: 'Alergia relevante' },
+    { chave: 'problemas_cardiacos', label: 'Algum médico já lhe disse que possui um problema cardíaco e que só deveria realizar atividade física sob supervisão médica?' },
+    { chave: 'dores_peito_atividade', label: 'Sente dores no peito quando pratica atividade física?' },
+    { chave: 'dores_peito_repouso', label: 'No último mês, sentiu dores no peito ao realizar atividades físicas ou em repouso?' },
+    { chave: 'tontura_desmaio', label: 'Apresenta desequilíbrio devido a tonturas ou já perdeu a consciência/desmaiou alguma vez?' },
+    { chave: 'problema_osseo_articular', label: 'Possui algum problema ósseo ou articular (ex: costas, joelhos, ombros, virilha) que pode agravar-se com a prática de artes marciais ou com o uso de armamento de treino?' },
+    { chave: 'condicao_respiratoria', label: 'Sofre de alguma condição respiratória (ex: asma, bronquite) que exija cuidados ao ar livre?' },
+    { chave: 'medicacao_pressao_cardiaco', label: 'Toma atualmente alguma medicação contínua para a pressão arterial ou problema cardíaco?' },
+    { chave: 'cirurgia_recente', label: 'Passou por alguma cirurgia recente?' },
+    { chave: 'outra_razao_medica', label: 'Sabe de alguma outra razão física, médica ou psicológica pela qual não deva praticar atividades físicas intensas?' },
   ];
 
   card: CardAlerta | null = null;

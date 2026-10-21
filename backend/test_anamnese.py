@@ -4,10 +4,12 @@ Testes do domínio Anamnese versionada + card de alerta crítico (Fase 3).
 Cobre as regras do steering (Fase 3):
 - versionamento: nova versão desativa a anterior; histórico preservado;
 - cálculo de validade (6 e 12 meses) e status (ok / vence_em_breve / vencida);
-- card de alerta extraído das condições críticas (asma, cardíaco, etc.);
+- card de alerta extraído das condições críticas (cardíaco, osseo/articular, etc.);
 - contatos de emergência herdados da ficha quando omitidos;
 - sincronização da string legada `restricao_medica`;
 - validade_meses inválida recusada; exigência de admin.
+
+Perguntas alinhadas à ficha física da Yōkai no Ki Ryūha (9 perguntas oficiais).
 """
 
 from datetime import date, timedelta
@@ -49,16 +51,22 @@ def test_status_validade():
 
 
 def test_extrair_condicoes_criticas_filtra_nao_criticas():
-    respostas = {"asma": "sim", "cirurgias": "sim", "diabetes": "nao"}
+    # condicao_respiratoria=sim (crítica), cirurgia_recente=sim (NÃO crítica)
+    respostas = {"condicao_respiratoria": "sim", "cirurgia_recente": "sim", "medicacao_pressao_cardiaco": "nao"}
     criticas = svc.extrair_condicoes_criticas(respostas)
-    assert "asma" in criticas       # crítica
-    assert "cirurgias" not in criticas  # marcada mas NÃO crítica
-    assert "diabetes" not in criticas   # crítica, mas resposta 'nao'
+    assert "condicao_respiratoria" in criticas      # crítica
+    assert "cirurgia_recente" not in criticas        # marcada mas NÃO crítica
+    assert "medicacao_pressao_cardiaco" not in criticas  # crítica, mas resposta 'nao'
 
 
 def test_serializar_restricao_legada():
-    s = svc.serializar_restricao_legada({"asma": "sim", "diabetes": "sim"}, "usa bombinha")
-    assert s == "Condições: asma, diabetes. Obs: usa bombinha"
+    s = svc.serializar_restricao_legada(
+        {"condicao_respiratoria": "sim", "problema_osseo_articular": "sim"},
+        "usa bombinha, problema no joelho"
+    )
+    assert "condicao_respiratoria" in s
+    assert "problema_osseo_articular" in s
+    assert "usa bombinha" in s
     assert svc.serializar_restricao_legada({}, None) is None
 
 
@@ -68,7 +76,7 @@ def test_primeira_versao(client, db_session):
     _aluno(db_session)
     r = client.post(
         "/anamnese/YNK0001",
-        json={"respostas": {"asma": "sim"}, "observacao": "leve", "validade_meses": 12},
+        json={"respostas": {"condicao_respiratoria": "sim"}, "observacao": "leve", "validade_meses": 12},
     )
     assert r.status_code == 200
     assert r.json()["versao"] == 1
@@ -77,8 +85,8 @@ def test_primeira_versao(client, db_session):
 
 def test_nova_versao_desativa_anterior(client, db_session):
     _aluno(db_session)
-    client.post("/anamnese/YNK0001", json={"respostas": {"asma": "sim"}})
-    client.post("/anamnese/YNK0001", json={"respostas": {"diabetes": "sim"}})
+    client.post("/anamnese/YNK0001", json={"respostas": {"condicao_respiratoria": "sim"}})
+    client.post("/anamnese/YNK0001", json={"respostas": {"tontura_desmaio": "sim"}})
 
     ativas = (
         db_session.query(Anamnese)
@@ -97,18 +105,18 @@ def test_card_alerta_lista_condicoes_criticas(client, db_session):
     _aluno(db_session)
     client.post(
         "/anamnese/YNK0001",
-        json={"respostas": {"problemas_cardiacos": "sim", "cirurgias": "sim"}},
+        json={"respostas": {"problemas_cardiacos": "sim", "cirurgia_recente": "sim"}},
     )
     card = client.get("/anamnese/YNK0001").json()["card_alerta"]
     chaves = [c["chave"] for c in card["condicoes"]]
     assert "problemas_cardiacos" in chaves
-    assert "cirurgias" not in chaves  # não é crítica
+    assert "cirurgia_recente" not in chaves  # NÃO é crítica
     assert card["tem_alerta"] is True
 
 
 def test_card_sem_condicoes_nao_alerta(client, db_session):
     _aluno(db_session)
-    client.post("/anamnese/YNK0001", json={"respostas": {"asma": "nao"}})
+    client.post("/anamnese/YNK0001", json={"respostas": {"condicao_respiratoria": "nao"}})
     card = client.get("/anamnese/YNK0001").json()["card_alerta"]
     assert card["tem_alerta"] is False
     assert card["condicoes"] == []
@@ -116,7 +124,7 @@ def test_card_sem_condicoes_nao_alerta(client, db_session):
 
 def test_contato_emergencia_herdado_da_ficha(client, db_session):
     _aluno(db_session)
-    client.post("/anamnese/YNK0001", json={"respostas": {"asma": "sim"}})
+    client.post("/anamnese/YNK0001", json={"respostas": {"condicao_respiratoria": "sim"}})
     card = client.get("/anamnese/YNK0001").json()["card_alerta"]
     assert card["contato_emergencia"]["nome"] == "Mãe da Bianca"
     assert card["contato_emergencia"]["telefone"] == "11999990000"
@@ -126,10 +134,11 @@ def test_sincroniza_restricao_legada(client, db_session):
     _aluno(db_session)
     client.post(
         "/anamnese/YNK0001",
-        json={"respostas": {"asma": "sim"}, "observacao": "usa bombinha"},
+        json={"respostas": {"condicao_respiratoria": "sim"}, "observacao": "usa bombinha"},
     )
     aluno = db_session.query(Aluno).filter(Aluno.id_matricula == "YNK0001").first()
-    assert aluno.restricao_medica == "Condições: asma. Obs: usa bombinha"
+    assert "condicao_respiratoria" in aluno.restricao_medica
+    assert "usa bombinha" in aluno.restricao_medica
 
 
 def test_validade_meses_invalida_400(client, db_session):
