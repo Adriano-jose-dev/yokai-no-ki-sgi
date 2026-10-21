@@ -9,10 +9,12 @@
 backend/.env
 frontend/.env
 
-# --- Documentos internos de segurança (manter só no folder local) ---
-# O plano de segurança mapeia fraquezas ainda não corrigidas; não deve ir ao
-# repositório público enquanto os itens S1-S9 não estiverem resolvidos.
+# --- Documentos internos (manter só no folder local, fora do GitHub) ---
+# Plano de segurança: mapeia fraquezas ainda não corrigidas.
+# Estado técnico e prompt: informação interna do sistema.
 docs/SEGURANCA.md
+docs/ESTADO-TECNICO.md
+docs/PROMPT-CONTINUIDADE.md
 
 # --- Banco de dados local (SQLite de desenvolvimento) ---
 *.db
