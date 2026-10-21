@@ -60,6 +60,11 @@ export class CalendarioPanelComponent implements OnInit {
   detalheDia: Ocorrencia[] = [];
   carregando = false;
 
+  // Estado dos controles de presença e duração real no detalhe do dia.
+  // Chave: id da ocorrência.
+  presencas: { [idOc: number]: { [idAluno: string]: boolean | null } } = {};
+  duracoesMin: { [idOc: number]: number | null } = {};
+
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
@@ -156,6 +161,8 @@ export class CalendarioPanelComponent implements OnInit {
   selecionarDia(cel: CelulaDia): void {
     if (!cel.noMes) return;
     this.diaSelecionadoIso = cel.iso;
+    this.presencas = {};
+    this.duracoesMin = {};
     this.api.get<Ocorrencia[]>(`/calendario/dia/${cel.iso}`).subscribe({
       next: (dados) => (this.detalheDia = dados || []),
       error: () => (this.detalheDia = []),
@@ -190,6 +197,38 @@ export class CalendarioPanelComponent implements OnInit {
         next: (dados) => (this.detalheDia = dados || []),
       });
     }
+  }
+
+  marcarPresenca(oc: Ocorrencia, idAluno: string, presente: boolean): void {
+    this.api
+      .post(`/ocorrencias/${oc.id}/presenca`, { id_aluno: idAluno, presente })
+      .subscribe({
+        next: () => {
+          if (!this.presencas[oc.id]) this.presencas[oc.id] = {};
+          this.presencas[oc.id][idAluno] = presente;
+          // Atualiza o estado da ocorrência para 'realizada' localmente.
+          oc.estado = 'realizada';
+        },
+        error: () => alert('Não foi possível registrar a presença.'),
+      });
+  }
+
+  salvarDuracao(oc: Ocorrencia): void {
+    const min = this.duracoesMin[oc.id];
+    if (!min || min <= 0) {
+      alert('Informe a duração em minutos (valor maior que zero).');
+      return;
+    }
+    this.api
+      .put(`/ocorrencias/${oc.id}/duracao`, { duracao_real_min: min })
+      .subscribe({
+        next: () => {
+          oc.duracao_real_min = min;
+          oc.estado = 'realizada';
+          alert(`Duração de ${min} min registrada.`);
+        },
+        error: () => alert('Não foi possível registrar a duração.'),
+      });
   }
 
   formatarIso(iso: string): string {

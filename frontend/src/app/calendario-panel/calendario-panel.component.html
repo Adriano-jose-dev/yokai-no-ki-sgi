@@ -90,13 +90,42 @@
         @if (o.participantes && o.participantes.length > 0) {
         <div class="mt-2">
           <p class="text-[10px] font-bold text-sumi-500 uppercase mb-1">Participantes</p>
-          <div class="flex flex-wrap gap-1">
+          <div class="flex flex-col gap-1.5">
             @for (p of o.participantes; track p.id_aluno) {
-            <span class="text-[10px] bg-sumi-100 text-sumi-700 px-1.5 py-0.5 rounded border border-sumi-200">
-              {{ p.nome }}@if (p.papel === 'ocorrente') { <em>(ocorrente)</em> }
-            </span>
+            <div class="flex items-center justify-between bg-sumi-50 rounded px-2 py-1 border border-sumi-200">
+              <span class="text-[11px] text-sumi-700 font-bold">
+                {{ p.nome }}@if (p.papel === 'ocorrente') { <em class="font-normal"> (ocorrente)</em> }
+              </span>
+              @if (o.estado !== 'cancelada') {
+              <div class="flex gap-1.5">
+                <button (click)="marcarPresenca(o, p.id_aluno, true)"
+                  [ngClass]="presencas[o.id]?.[p.id_aluno] === true ? 'bg-emerald-600 text-white' : 'bg-sumi-100 text-sumi-600 hover:bg-emerald-50'"
+                  class="text-[10px] font-black px-2 py-0.5 rounded border border-sumi-200 uppercase transition-all flex items-center gap-0.5">
+                  <lucide-icon name="check" class="w-3 h-3"></lucide-icon> P
+                </button>
+                <button (click)="marcarPresenca(o, p.id_aluno, false)"
+                  [ngClass]="presencas[o.id]?.[p.id_aluno] === false ? 'bg-carmesim-600 text-white' : 'bg-sumi-100 text-sumi-600 hover:bg-carmesim-50'"
+                  class="text-[10px] font-black px-2 py-0.5 rounded border border-sumi-200 uppercase transition-all flex items-center gap-0.5">
+                  <lucide-icon name="x" class="w-3 h-3"></lucide-icon> F
+                </button>
+              </div>
+              }
+            </div>
             }
           </div>
+        </div>
+        }
+
+        @if (o.estado !== 'cancelada') {
+        <!-- Duração real da aula -->
+        <div class="mt-2 flex items-center gap-2">
+          <input type="number" [(ngModel)]="duracoesMin[o.id]" min="1" max="300"
+            [placeholder]="o.duracao_real_min ? o.duracao_real_min + ' min' : 'Duração (min)'"
+            class="flex-1 p-1 text-xs border border-sumi-200 rounded outline-none focus:ring-1 focus:ring-carmesim-400 bg-white">
+          <button (click)="salvarDuracao(o)"
+            class="text-[10px] bg-sumi-700 hover:bg-sumi-900 text-white font-bold py-1 px-2 rounded flex items-center gap-1 whitespace-nowrap">
+            <lucide-icon name="save" class="w-3 h-3"></lucide-icon> Salvar
+          </button>
         </div>
         }
 
