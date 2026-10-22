@@ -55,6 +55,15 @@ class Aluno(Base):
     genero = Column(String, nullable=True)        # 'Cis' | 'Trans' | 'Outro'
     cpf_responsavel = Column(String, nullable=True)   # para menores de idade
     rg_responsavel = Column(String, nullable=True)    # para menores de idade
+    # P4: armazenamento da ficha e do termo assinados digitalmente (PDF).
+    # O PDF fica no banco junto com o aluno e é expurgado junto com ele (LGPD).
+    # Dois arquivos distintos conforme a ficha física oficial:
+    # - ficha_inscricao_pdf: Ficha de Matrícula + Anamnese assinada.
+    # - termo_risco_pdf: Termo de Isenção de Responsabilidade assinado.
+    ficha_inscricao_pdf = Column(LargeBinary, nullable=True)
+    ficha_inscricao_nome = Column(String, nullable=True)
+    termo_risco_pdf = Column(LargeBinary, nullable=True)
+    termo_risco_nome = Column(String, nullable=True)
 
 
 class Contrato(Base):

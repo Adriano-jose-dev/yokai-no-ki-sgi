@@ -9,7 +9,8 @@ Comportamento idêntico ao monolito original.
 import re
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -483,6 +484,8 @@ def obter_progresso(id_matricula: str, db: Session = Depends(get_db)):
             "genero": aluno.genero,
             "cpf_responsavel": aluno.cpf_responsavel,
             "rg_responsavel": aluno.rg_responsavel,
+            "ficha_inscricao_nome": aluno.ficha_inscricao_nome,
+            "termo_risco_nome": aluno.termo_risco_nome,
         },
         "historico_pagamentos": historico,
         "painel_pendencias": painel_pendencias,
@@ -631,3 +634,100 @@ def toggle_hora_flexivel(id_matricula: str, db: Session = Depends(get_db)):
     aluno.hora_flexivel = not aluno.hora_flexivel
     db.commit()
     return {"status": "Atualizado"}
+
+
+# =============================================================================
+# P4 — Armazenamento de documentos assinados (Ficha de Inscrição + Termo de Risco)
+#
+# Os PDFs ficam no banco junto com o aluno e são expurgados junto com ele (LGPD).
+# Dois documentos distintos conforme a ficha física oficial da Yōkai no Ki Ryūha.
+# =============================================================================
+
+def _get_aluno_ou_404(id_matricula: str, db: Session) -> Aluno:
+    aluno = db.query(Aluno).filter(Aluno.id_matricula == id_matricula).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    return aluno
+
+
+@router.post(
+    "/alunos/{id_matricula}/upload/ficha",
+    summary="Upload da Ficha de Inscrição + Anamnese assinada (PDF)",
+    description=(
+        "Armazena o PDF da **Ficha de Matrícula + Anamnese** assinado "
+        "(preferencialmente via Gov.br). O arquivo substitui qualquer versão "
+        "anterior. Limite recomendado: 10 MB."
+    ),
+)
+async def upload_ficha_inscricao(
+    id_matricula: str,
+    arquivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    aluno = _get_aluno_ou_404(id_matricula, db)
+    conteudo = await arquivo.read()
+    aluno.ficha_inscricao_pdf = conteudo
+    aluno.ficha_inscricao_nome = arquivo.filename or f"ficha_{id_matricula}.pdf"
+    db.commit()
+    return {
+        "status": "Ficha de Inscrição salva",
+        "nome": aluno.ficha_inscricao_nome,
+        "tamanho_kb": round(len(conteudo) / 1024, 1),
+    }
+
+
+@router.get(
+    "/alunos/{id_matricula}/download/ficha",
+    summary="Download da Ficha de Inscrição + Anamnese assinada",
+    response_class=Response,
+)
+def download_ficha_inscricao(id_matricula: str, db: Session = Depends(get_db)):
+    aluno = _get_aluno_ou_404(id_matricula, db)
+    if not aluno.ficha_inscricao_pdf:
+        raise HTTPException(status_code=404, detail="Ficha de Inscrição não encontrada")
+    return Response(
+        content=aluno.ficha_inscricao_pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{aluno.ficha_inscricao_nome}"'},
+    )
+
+
+@router.post(
+    "/alunos/{id_matricula}/upload/termo",
+    summary="Upload do Termo de Isenção de Responsabilidade assinado (PDF)",
+    description=(
+        "Armazena o PDF do **Termo de Assunção de Riscos e Isenção** assinado. "
+        "O arquivo substitui qualquer versão anterior."
+    ),
+)
+async def upload_termo_risco(
+    id_matricula: str,
+    arquivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    aluno = _get_aluno_ou_404(id_matricula, db)
+    conteudo = await arquivo.read()
+    aluno.termo_risco_pdf = conteudo
+    aluno.termo_risco_nome = arquivo.filename or f"termo_{id_matricula}.pdf"
+    db.commit()
+    return {
+        "status": "Termo de Risco salvo",
+        "nome": aluno.termo_risco_nome,
+        "tamanho_kb": round(len(conteudo) / 1024, 1),
+    }
+
+
+@router.get(
+    "/alunos/{id_matricula}/download/termo",
+    summary="Download do Termo de Isenção de Responsabilidade assinado",
+    response_class=Response,
+)
+def download_termo_risco(id_matricula: str, db: Session = Depends(get_db)):
+    aluno = _get_aluno_ou_404(id_matricula, db)
+    if not aluno.termo_risco_pdf:
+        raise HTTPException(status_code=404, detail="Termo de Risco não encontrado")
+    return Response(
+        content=aluno.termo_risco_pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{aluno.termo_risco_nome}"'},
+    )
