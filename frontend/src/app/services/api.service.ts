@@ -37,6 +37,11 @@ export class ApiService {
     return this.http.post<T>(this.url(path), body);
   }
 
+  /** POST multipart/form-data (usado para upload de arquivos). */
+  postFormData<T = any>(path: string, formData: FormData): Observable<T> {
+    return this.http.post<T>(this.url(path), formData);
+  }
+
   put<T = any>(path: string, body: any = {}): Observable<T> {
     return this.http.put<T>(this.url(path), body);
   }

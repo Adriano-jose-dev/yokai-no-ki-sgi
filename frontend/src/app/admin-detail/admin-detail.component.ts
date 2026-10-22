@@ -315,4 +315,39 @@ export class AdminDetailComponent implements OnInit {
       next: () => { this.aluno.aluno.diario_pedagogico = str; this.novaNotaTitulo = ''; this.novaNotaPedagogica = ''; }
     });
   }
+
+  // --- P4: Upload/Download de documentos assinados ---
+
+  uploadDocumento(campo: 'ficha' | 'termo', event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length || !this.alunoSelecionadoId) return;
+    const arquivo = input.files[0];
+    const form = new FormData();
+    form.append('arquivo', arquivo, arquivo.name);
+    this.api.postFormData(`/alunos/${this.alunoSelecionadoId}/upload/${campo}`, form)
+      .subscribe({
+        next: () => {
+          alert(`${campo === 'ficha' ? 'Ficha de Inscrição' : 'Termo de Risco'} enviada com sucesso!`);
+          this.carregarDadosAluno(true);
+        },
+        error: (err: any) => alert(err?.error?.detail || 'Falha no upload.'),
+      });
+  }
+
+  downloadDocumento(campo: 'ficha' | 'termo'): void {
+    if (!this.alunoSelecionadoId) return;
+    this.api.getBlob(`/alunos/${this.alunoSelecionadoId}/download/${campo}`)
+      .subscribe({
+        next: (blob) => {
+          const nome = campo === 'ficha'
+            ? (this.aluno?.aluno?.ficha_inscricao_nome || `ficha_${this.alunoSelecionadoId}.pdf`)
+            : (this.aluno?.aluno?.termo_risco_nome || `termo_${this.alunoSelecionadoId}.pdf`);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = nome; a.click();
+          URL.revokeObjectURL(url);
+        },
+        error: () => alert('Documento não encontrado.'),
+      });
+  }
 }
