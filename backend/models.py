@@ -50,6 +50,11 @@ class Aluno(Base):
     diario_pedagogico = Column(String, default="[]")
     modo_treino = Column(String, default="Modo Dojo")
     acordo_contratual = Column(String, nullable=True)
+    # P2/P3/P5: campos adicionados para alinhar com a ficha física oficial.
+    cpf = Column(String, nullable=True)
+    genero = Column(String, nullable=True)        # 'Cis' | 'Trans' | 'Outro'
+    cpf_responsavel = Column(String, nullable=True)   # para menores de idade
+    rg_responsavel = Column(String, nullable=True)    # para menores de idade
 
 
 class Contrato(Base):

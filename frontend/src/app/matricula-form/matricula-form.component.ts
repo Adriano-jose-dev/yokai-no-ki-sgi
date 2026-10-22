@@ -15,6 +15,8 @@ export interface AlunoForm {
   equipamento_proprio: boolean; termo_risco_assinado: boolean; taxa_admissao?: 'padrao' | 'shokubai' | '';
   plano: string; valor_base_contrato: number; acordo_contratual?: string;
   dia_vencimento: number;
+  // P2/P3/P5
+  cpf?: string; genero?: string; cpf_responsavel?: string; rg_responsavel?: string;
 }
 
 @Component({
@@ -50,7 +52,8 @@ export class MatriculaFormComponent implements OnChanges {
     contato_emergencia_nome: '', contato_emergencia_parentesco: '', contato_emergencia_telefone: '', trilha_marcial: 'dojo',
     respostas_medicas: this.criarRespostasMedicasVazias(), detalhamento_medico: '', termo_imagem: 'concordo', historico_marcial: '',
     equipamento_proprio: false, termo_risco_assinado: false, taxa_admissao: 'padrao', plano: 'Horas Livres', valor_base_contrato: 20.0, acordo_contratual: '',
-    dia_vencimento: 10
+    dia_vencimento: 10,
+    cpf: '', genero: '', cpf_responsavel: '', rg_responsavel: ''
   };
 
   private criarRespostasMedicasVazias() {
@@ -112,7 +115,11 @@ export class MatriculaFormComponent implements OnChanges {
       dia_vencimento: this.aluno.dia_vencimento,
       status_atividade: this.tipoCadastro === 'experimental' ? 'Aula Experimental' : 'Ativo',
       inclui_shokubai: this.aluno.taxa_admissao === 'shokubai', taxa_admissao_valor: this.aluno.taxa_admissao === 'shokubai' ? 70.0 : 50.0,
-      modo_treino: this.aluno.trilha_marcial === 'legado' ? 'Modo Legado' : 'Modo Dojo'
+      modo_treino: this.aluno.trilha_marcial === 'legado' ? 'Modo Legado' : 'Modo Dojo',
+      cpf: this.aluno.cpf || null,
+      genero: this.aluno.genero || null,
+      cpf_responsavel: this.aluno.cpf_responsavel || null,
+      rg_responsavel: this.aluno.rg_responsavel || null,
     };
 
     const isUpgrade = !!this.alunoParaUpgrade;

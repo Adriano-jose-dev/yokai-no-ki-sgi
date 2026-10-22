@@ -42,6 +42,29 @@
           </div>
         </div>
 
+        <!-- CPF + Gênero (ficha oficial) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-1">CPF</label>
+            <input type="text" [(ngModel)]="aluno.cpf" placeholder="000.000.000-00"
+              class="w-full p-2.5 border border-sumi-300 rounded focus:ring-1 focus:ring-sumi-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-sumi-500 mb-2">Gênero</label>
+            <div class="flex gap-4 mt-1">
+              <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+                <input type="radio" name="genero_mat" [(ngModel)]="aluno.genero" value="Cis"> Cis
+              </label>
+              <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+                <input type="radio" name="genero_mat" [(ngModel)]="aluno.genero" value="Trans"> Trans
+              </label>
+              <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+                <input type="radio" name="genero_mat" [(ngModel)]="aluno.genero" value="Outro"> Outro
+              </label>
+            </div>
+          </div>
+        </div>
+
         @if (tipoCadastro === 'completa') {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label class="block text-xs font-bold text-sumi-500 mb-1">Nacionalidade</label><input type="text"
@@ -94,6 +117,16 @@
             <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">Nome da Mãe</label><input type="text"
                 [(ngModel)]="aluno.nome_mae" class="w-full p-2 border rounded"></div>
           </div>
+          @if (isMenorDeIdade) {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+            <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">CPF do Responsável Legal</label>
+              <input type="text" [(ngModel)]="aluno.cpf_responsavel" placeholder="000.000.000-00"
+                class="w-full p-2 border rounded"></div>
+            <div><label class="block text-[11px] font-bold text-sumi-400 mb-0.5">RG do Responsável Legal</label>
+              <input type="text" [(ngModel)]="aluno.rg_responsavel"
+                class="w-full p-2 border rounded"></div>
+          </div>
+          }
         </div>
       </div>
       }

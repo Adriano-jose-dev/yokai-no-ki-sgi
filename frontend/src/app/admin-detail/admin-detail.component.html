@@ -233,6 +233,35 @@
                 }
               </div>
 
+              <!-- CPF + Gênero (P2/P3) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-sumi-400 mb-1">CPF:</label>
+                  @if (!editandoFicha) {
+                  <p class="text-sm text-sumi-800">{{ aluno.aluno.cpf || 'Não informado' }}</p>
+                  }
+                  @if (editandoFicha) {
+                  <input type="text" [(ngModel)]="cloneFicha.cpf" placeholder="000.000.000-00"
+                    class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 focus:ring-1 focus:ring-carmesim-500 outline-none">
+                  }
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-sumi-400 mb-1">Gênero:</label>
+                  @if (!editandoFicha) {
+                  <p class="text-sm text-sumi-800">{{ aluno.aluno.genero || 'Não informado' }}</p>
+                  }
+                  @if (editandoFicha) {
+                  <select [(ngModel)]="cloneFicha.genero"
+                    class="w-full p-2 border border-sumi-300 rounded text-sm bg-ouro-50 outline-none">
+                    <option value="">Não informado</option>
+                    <option value="Cis">Cis</option>
+                    <option value="Trans">Trans</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                  }
+                </div>
+              </div>
+
               <div>
                 <label class="block text-xs font-bold text-sumi-400 mb-1">Graduação Atual:</label>
                 @if (!editandoFicha) {
@@ -319,6 +348,31 @@
                       class="w-full p-2 border border-sumi-300 rounded text-sm bg-white" placeholder="Nome da Mãe">
                     }
                   </div>
+                  <!-- CPF e RG do responsável (P5) — visível sempre para completude, obrigatório para menores -->
+                  @if (isMenorDeIdadeEdicao || aluno.aluno.cpf_responsavel || editandoFicha) {
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    <div>
+                      <label class="block text-[11px] font-bold text-sumi-400 mb-0.5">CPF do Responsável:</label>
+                      @if (!editandoFicha) {
+                      <p class="text-sm text-sumi-800">{{ aluno.aluno.cpf_responsavel || 'Não informado' }}</p>
+                      }
+                      @if (editandoFicha) {
+                      <input type="text" [(ngModel)]="cloneFicha.cpf_responsavel" placeholder="000.000.000-00"
+                        class="w-full p-2 border border-sumi-300 rounded text-sm bg-white">
+                      }
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold text-sumi-400 mb-0.5">RG do Responsável:</label>
+                      @if (!editandoFicha) {
+                      <p class="text-sm text-sumi-800">{{ aluno.aluno.rg_responsavel || 'Não informado' }}</p>
+                      }
+                      @if (editandoFicha) {
+                      <input type="text" [(ngModel)]="cloneFicha.rg_responsavel"
+                        class="w-full p-2 border border-sumi-300 rounded text-sm bg-white">
+                      }
+                    </div>
+                  </div>
+                  }
                 </div>
               </div>
 

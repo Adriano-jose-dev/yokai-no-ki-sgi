@@ -46,6 +46,11 @@ class NovoAlunoRequest(BaseModel):
     modo_treino: str = "Modo Dojo"
     dia_vencimento: Optional[int] = 10
     acordo_contratual: Optional[str] = None
+    # P2/P3/P5
+    cpf: Optional[str] = None
+    genero: Optional[str] = None
+    cpf_responsavel: Optional[str] = None
+    rg_responsavel: Optional[str] = None
 
 
 class EditarFichaRequest(BaseModel):
@@ -64,6 +69,11 @@ class EditarFichaRequest(BaseModel):
     modo_treino: str
     graduacao_atual: str
     acordo_contratual: Optional[str] = None
+    # P2/P3/P5
+    cpf: Optional[str] = None
+    genero: Optional[str] = None
+    cpf_responsavel: Optional[str] = None
+    rg_responsavel: Optional[str] = None
 
 
 class EditarContratoRequest(BaseModel):

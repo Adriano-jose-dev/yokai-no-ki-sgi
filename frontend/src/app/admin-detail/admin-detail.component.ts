@@ -173,7 +173,9 @@ export class AdminDetailComponent implements OnInit {
       nome_pai: this.aluno.aluno.nome_pai, nome_mae: this.aluno.aluno.nome_mae, whatsapp: this.aluno.aluno.whatsapp, email: this.aluno.aluno.email,
       contato_emergencia_nome: this.aluno.aluno.contato_emergencia_nome, contato_emergencia_parentesco: this.aluno.aluno.contato_emergencia_parentesco, contato_emergencia_telefone: this.aluno.aluno.contato_emergencia_telefone,
       equipamento_proprio: this.aluno.aluno.equipamento_proprio, historico_marcial: this.aluno.aluno.historico_marcial,
-      modo_treino: this.aluno.aluno.modo_treino, restricao_medica: this.aluno.aluno.restricao_medica, acordo_contratual: this.aluno.aluno.acordo_contratual
+      modo_treino: this.aluno.aluno.modo_treino, restricao_medica: this.aluno.aluno.restricao_medica, acordo_contratual: this.aluno.aluno.acordo_contratual,
+      cpf: this.aluno.aluno.cpf || '', genero: this.aluno.aluno.genero || '',
+      cpf_responsavel: this.aluno.aluno.cpf_responsavel || '', rg_responsavel: this.aluno.aluno.rg_responsavel || ''
     };
     this.parseAnamneseExistente();
   }

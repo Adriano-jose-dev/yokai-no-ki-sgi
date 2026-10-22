@@ -101,6 +101,10 @@ def matricular_aluno(req: NovoAlunoRequest, db: Session = Depends(get_db)):
         diario_pedagogico="[]",
         modo_treino=req.modo_treino,
         acordo_contratual=req.acordo_contratual,
+        cpf=req.cpf,
+        genero=req.genero,
+        cpf_responsavel=req.cpf_responsavel,
+        rg_responsavel=req.rg_responsavel,
     )
     db.add(novo_aluno)
     db.add(
@@ -148,6 +152,10 @@ def upgrade_aluno(
     aluno.status_atividade = req.status_atividade
     aluno.modo_treino = req.modo_treino
     aluno.acordo_contratual = req.acordo_contratual
+    aluno.cpf = req.cpf
+    aluno.genero = req.genero
+    aluno.cpf_responsavel = req.cpf_responsavel
+    aluno.rg_responsavel = req.rg_responsavel
     contrato.modelo_plano = req.modelo_plano
     contrato.valor_base = req.valor_base_contrato
     contrato.valor_contratual_fixo = req.valor_base_contrato
@@ -182,6 +190,10 @@ def editar_aluno(
     aluno.modo_treino = req.modo_treino
     aluno.graduacao_atual = req.graduacao_atual
     aluno.acordo_contratual = req.acordo_contratual
+    aluno.cpf = req.cpf
+    aluno.genero = req.genero
+    aluno.cpf_responsavel = req.cpf_responsavel
+    aluno.rg_responsavel = req.rg_responsavel
     db.commit()
     return {"status": "Ficha atualizada"}
 
@@ -467,6 +479,10 @@ def obter_progresso(id_matricula: str, db: Session = Depends(get_db)):
                 aluno.acordo_contratual if aluno.acordo_contratual else ""
             ),
             "hora_flexivel": aluno.hora_flexivel,
+            "cpf": aluno.cpf,
+            "genero": aluno.genero,
+            "cpf_responsavel": aluno.cpf_responsavel,
+            "rg_responsavel": aluno.rg_responsavel,
         },
         "historico_pagamentos": historico,
         "painel_pendencias": painel_pendencias,
